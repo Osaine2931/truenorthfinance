@@ -1,19 +1,17 @@
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { z } from "zod";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
-const searchSchema = z.object({
-  mode: z.enum(["login", "register"]).optional(),
-  redirect: z.string().optional(),
-});
+type AuthSearch = { mode?: "login" | "register"; redirect?: string };
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
+    mode: search.mode === "register" ? "register" : search.mode === "login" ? "login" : undefined,
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — Aurelian" },
