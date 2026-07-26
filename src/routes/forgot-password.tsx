@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { BrandLockup } from "@/components/brand";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { BrandLockup } from "@/components/brand";
 
 type AuthSearch = { mode?: "login" | "register"; redirect?: string };
 
@@ -83,11 +84,8 @@ function AuthPage() {
     <div className="grid min-h-screen bg-background lg:grid-cols-2">
       {/* Hero panel */}
       <aside className="glass-blue relative hidden overflow-hidden p-12 lg:flex lg:flex-col lg:justify-between">
-        <Link to="/" className="flex items-center gap-2 text-white">
-          <div className="grid size-8 place-items-center rounded-md bg-white/10">
-            <div className="size-3 rotate-45 border-2 border-gold" />
-          </div>
-          <span className="font-display text-xl font-semibold">TrueNorth Financial</span>
+        <Link to="/">
+          <BrandLockup tone="invert" />
         </Link>
         <div className="relative">
           <div className="mb-6 h-px w-24 bg-gold" />
@@ -112,7 +110,7 @@ function AuthPage() {
             Back
           </Link>
           <div className="lg:hidden">
-            <span className="font-display text-lg font-semibold text-navy">TrueNorth Financial</span>
+            <BrandLockup compact />
           </div>
         </div>
 
