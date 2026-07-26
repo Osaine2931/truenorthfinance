@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Mail, MessageCircle, LifeBuoy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/support")({
-  head: () => ({ meta: [{ title: "Support — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Support — TrueNorth Financial" }] }),
   component: Support,
 });
 

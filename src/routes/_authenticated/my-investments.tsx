@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { activeInvestments, formatCurrency } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/_authenticated/my-investments")({
-  head: () => ({ meta: [{ title: "My Investments — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "My Investments — TrueNorth Financial" }] }),
   component: MyInvestments,
 });
 

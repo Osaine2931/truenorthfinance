@@ -1,5 +1,5 @@
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
-import { portfolioSeries, distribution, formatCompact } from "@/lib/mock-data";
+import { AreaChart, Area, BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
+import { portfolioSeries, distribution, performanceSeries, formatCompact } from "@/lib/mock-data";
 
 export function PortfolioChart() {
   return (
@@ -71,6 +71,40 @@ export function DistributionChart() {
           formatter={(v: number, n) => [`${v}%`, n as string]}
         />
       </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function PerformanceChart() {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={performanceSeries} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <CartesianGrid vertical={false} stroke="var(--color-border)" />
+        <XAxis
+          dataKey="month"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+        />
+        <YAxis
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+          tickFormatter={(v) => `${v}%`}
+          width={38}
+        />
+        <Tooltip
+          cursor={{ fill: "var(--color-royal-soft)" }}
+          contentStyle={{
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "12px",
+            fontSize: "12px",
+          }}
+          formatter={(v: number) => [`${v}%`, "Return"]}
+        />
+        <Bar dataKey="returns" fill="var(--color-royal)" radius={[8, 8, 0, 0]} maxBarSize={28} />
+      </BarChart>
     </ResponsiveContainer>
   );
 }

@@ -3,7 +3,7 @@ import { formatCurrency, kpis } from "@/lib/mock-data";
 import { ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
-  head: () => ({ meta: [{ title: "Wallet — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Wallet — TrueNorth Financial" }] }),
   component: Wallet,
 });
 
@@ -14,7 +14,7 @@ function Wallet() {
         <h1 className="font-display text-3xl font-semibold text-navy sm:text-4xl">Wallet</h1>
         <p className="mt-1 text-sm text-muted-foreground">Manage your available balance and payouts.</p>
       </div>
-      <div className="glass-navy relative overflow-hidden rounded-2xl p-6 shadow-elevated">
+      <div className="glass-blue relative overflow-hidden rounded-2xl p-6 shadow-elevated">
         <div className="absolute -right-16 -top-16 size-48 rounded-full bg-gold/20 blur-3xl" />
         <div className="relative">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-white/60">

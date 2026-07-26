@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Gift, Sparkles, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/rewards")({
-  head: () => ({ meta: [{ title: "Rewards — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Rewards — TrueNorth Financial" }] }),
   component: Rewards,
 });
 

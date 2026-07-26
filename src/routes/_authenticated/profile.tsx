@@ -3,7 +3,7 @@ import { Route as AuthRoute } from "@/routes/_authenticated/route";
 import { ShieldCheck, Mail, User as UserIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "Profile — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Profile — TrueNorth Financial" }] }),
   component: Profile,
 });
 
@@ -19,7 +19,7 @@ function Profile() {
       </div>
       <div className="surface-card p-6">
         <div className="flex items-center gap-4">
-          <div className="grid size-16 place-items-center rounded-full bg-navy font-display text-2xl font-semibold text-white">
+          <div className="grid size-16 place-items-center rounded-full bg-royal font-display text-2xl font-semibold text-white">
             {initials}
           </div>
           <div>

@@ -3,11 +3,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { BrandLockup } from "@/components/brand";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Set new password — Aurelian" },
+      { title: "Set new password — TrueNorth Financial" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -37,6 +38,7 @@ function ResetPassword() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm">
+        <BrandLockup className="mb-6" />
         <h1 className="font-display text-3xl font-semibold text-navy">Set a new password</h1>
         <p className="mt-2 text-sm text-muted-foreground">Choose a strong password to secure your account.</p>
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
@@ -52,7 +54,7 @@ function ResetPassword() {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-royal px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
           >
             {loading && <Loader2 className="size-4 animate-spin" />}
             Update password

@@ -5,7 +5,7 @@ import { formatCurrency, kpis } from "@/lib/mock-data";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/withdraw")({
-  head: () => ({ meta: [{ title: "Withdraw — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Withdraw — TrueNorth Financial" }] }),
   component: Withdraw,
 });
 
@@ -60,7 +60,7 @@ function Withdraw() {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-royal py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
           {loading && <Loader2 className="size-4 animate-spin" />}
           Request withdrawal

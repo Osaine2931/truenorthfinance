@@ -3,12 +3,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { BrandLockup } from "@/components/brand";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
-      { title: "Reset password — Aurelian" },
-      { name: "description", content: "Reset your Aurelian account password." },
+      { title: "Reset password — TrueNorth Financial" },
+      { name: "description", content: "Reset your TrueNorth Financial account password." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -47,6 +48,7 @@ function ForgotPassword() {
           <ArrowLeft className="size-4" />
           Back to sign in
         </Link>
+        <BrandLockup className="mb-6" />
         <h1 className="font-display text-3xl font-semibold text-navy">Reset your password</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Enter your email and we'll send you a secure link.
@@ -72,7 +74,7 @@ function ForgotPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-royal px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
             >
               {loading && <Loader2 className="size-4 animate-spin" />}
               Send reset link

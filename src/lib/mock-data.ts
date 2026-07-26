@@ -23,10 +23,10 @@ export const portfolioSeries = [
 ];
 
 export const distribution = [
-  { name: "Real Estate", value: 42, color: "var(--color-royal)" },
-  { name: "Blue Chip", value: 28, color: "var(--color-navy)" },
-  { name: "Sustainable", value: 18, color: "var(--color-gold)" },
-  { name: "Emerging Tech", value: 12, color: "oklch(0.62 0.16 155)" },
+  { name: "Real Estate", value: 42, color: "oklch(0.62 0.17 252)" },
+  { name: "Blue Chip", value: 28, color: "oklch(0.72 0.14 250)" },
+  { name: "Sustainable", value: 18, color: "oklch(0.81 0.1 240)" },
+  { name: "Emerging Tech", value: 12, color: "oklch(0.91 0.05 235)" },
 ];
 
 export type InvestmentPlan = {
@@ -128,3 +128,21 @@ export function formatCurrency(n: number) {
 export function formatCompact(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 2 }).format(n);
 }
+
+export const performanceSeries = [
+  { month: "Jan", returns: 3.2 },
+  { month: "Feb", returns: 2.6 },
+  { month: "Mar", returns: 4.1 },
+  { month: "Apr", returns: 3.4 },
+  { month: "May", returns: 5.2 },
+  { month: "Jun", returns: 4.6 },
+  { month: "Jul", returns: 3.9 },
+  { month: "Aug", returns: 5.8 },
+];
+
+export const recentActivities = [
+  { id: "a1", title: "Subscribed to Prime Real Estate Fund", meta: "$45,000 · Contract #PR-8821", time: "Today, 09:12" },
+  { id: "a2", title: "KYC documents approved", meta: "Identity verification complete", time: "Yesterday, 16:40" },
+  { id: "a3", title: "Withdrawal processed", meta: "$2,500 to •••• 4417", time: "May 21, 11:05" },
+  { id: "a4", title: "Referral joined", meta: "M. Adeyemi opened an account", time: "May 19, 08:31" },
+];

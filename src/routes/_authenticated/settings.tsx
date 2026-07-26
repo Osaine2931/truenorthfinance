@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Settings — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Settings — TrueNorth Financial" }] }),
   component: Settings,
 });
 
