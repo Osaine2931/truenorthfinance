@@ -156,7 +156,7 @@ function Landing() {
             <Link
               to="/auth"
               search={{ mode: "register" } as never}
-              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-gold px-6 py-3 text-sm font-medium text-navy hover:opacity-90"
+              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-royal hover:opacity-90"
             >
               Open your account
               <ArrowRight className="size-4" />
