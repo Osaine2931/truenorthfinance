@@ -38,6 +38,7 @@ function ResetPassword() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm">
+        <BrandLockup className="mb-6" />
         <h1 className="font-display text-3xl font-semibold text-navy">Set a new password</h1>
         <p className="mt-2 text-sm text-muted-foreground">Choose a strong password to secure your account.</p>
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">

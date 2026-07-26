@@ -48,6 +48,7 @@ function ForgotPassword() {
           <ArrowLeft className="size-4" />
           Back to sign in
         </Link>
+        <BrandLockup className="mb-6" />
         <h1 className="font-display text-3xl font-semibold text-navy">Reset your password</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Enter your email and we'll send you a secure link.

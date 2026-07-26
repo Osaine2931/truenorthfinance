@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ShieldCheck, TrendingUp, Sparkles } from "lucide-react";
+import { BrandLockup } from "@/components/brand";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,17 +26,12 @@ function Landing() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="grid size-8 place-items-center rounded-md bg-royal">
-              <div className="size-3 rotate-45 border-2 border-gold" />
-            </div>
-            <span className="font-display text-xl font-semibold tracking-tight text-navy">
-              TrueNorth Financial
-            </span>
+          <Link to="/">
+            <BrandLockup />
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a href="#plans" className="hover:text-foreground">Plans</a>
-            <a href="#why" className="hover:text-foreground">Why TrueNorth Financial</a>
+            <a href="#why" className="hover:text-foreground">Why TrueNorth</a>
             <a href="#security" className="hover:text-foreground">Security</a>
           </nav>
           <div className="flex items-center gap-2">
