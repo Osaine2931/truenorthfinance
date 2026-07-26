@@ -27,7 +27,7 @@ function NotFoundComponent() {
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-lg bg-navy px-5 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90"
+            className="inline-flex items-center justify-center rounded-lg bg-royal px-5 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90"
           >
             Return home
           </Link>
@@ -57,7 +57,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            className="inline-flex items-center justify-center rounded-lg bg-royal px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
           >
             Try again
           </button>
@@ -78,14 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Aurelian — Private Wealth Investment Platform" },
+      { title: "TrueNorth Financial — Private Wealth Investment Platform" },
       {
         name: "description",
         content:
-          "Aurelian is a premium long-term investment platform. Grow your capital across curated funds with transparent ROI, secure custody, and private-banker service.",
+          "TrueNorth Financial is a premium long-term investment platform. Grow your capital across curated funds with transparent ROI, secure custody, and private-banker service.",
       },
-      { name: "author", content: "Aurelian" },
-      { property: "og:title", content: "Aurelian — Private Wealth Investment Platform" },
+      { name: "author", content: "TrueNorth Financial" },
+      { property: "og:title", content: "TrueNorth Financial — Private Wealth Investment Platform" },
       {
         property: "og:description",
         content: "Grow your capital across curated funds with transparent ROI and private-banker service.",

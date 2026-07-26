@@ -21,7 +21,7 @@ import {
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Aurelian" },
+      { title: "Dashboard — TrueNorth Financial" },
       { name: "description", content: "Your investment portfolio at a glance." },
     ],
   }),
@@ -38,7 +38,7 @@ function Dashboard() {
 
       {/* KPI grid — hero card + 5 secondary */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <div className="glass-navy relative overflow-hidden rounded-2xl p-6 shadow-elevated lg:col-span-2 lg:row-span-2">
+        <div className="glass-blue relative overflow-hidden rounded-2xl p-6 shadow-elevated lg:col-span-2 lg:row-span-2">
           <div className="absolute -right-16 -top-16 size-48 rounded-full bg-gold/20 blur-3xl" />
           <div className="relative">
             <div className="flex items-center gap-2">

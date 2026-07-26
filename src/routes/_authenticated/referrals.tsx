@@ -6,7 +6,7 @@ import { Copy, Users, Gift, Share2 } from "lucide-react";
 import { Route as AuthRoute } from "@/routes/_authenticated/route";
 
 export const Route = createFileRoute("/_authenticated/referrals")({
-  head: () => ({ meta: [{ title: "Referral Program — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Referral Program — TrueNorth Financial" }] }),
   component: Referrals,
 });
 
@@ -32,7 +32,7 @@ function Referrals() {
         </p>
       </div>
 
-      <div className="glass-navy relative overflow-hidden rounded-2xl p-6 shadow-elevated">
+      <div className="glass-blue relative overflow-hidden rounded-2xl p-6 shadow-elevated">
         <div className="absolute -right-16 -top-16 size-48 rounded-full bg-gold/20 blur-3xl" />
         <div className="relative">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-white/60">

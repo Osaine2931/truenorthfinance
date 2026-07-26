@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { notifications } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
-  head: () => ({ meta: [{ title: "Notifications — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Notifications — TrueNorth Financial" }] }),
   component: Notifications,
 });
 

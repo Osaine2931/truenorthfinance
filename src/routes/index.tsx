@@ -4,13 +4,13 @@ import { ArrowRight, ShieldCheck, TrendingUp, Sparkles } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Aurelian — Private Wealth Investment Platform" },
+      { title: "TrueNorth Financial — Private Wealth Investment Platform" },
       {
         name: "description",
         content:
-          "Aurelian is a premium long-term investment platform. Curated funds, transparent ROI, private-banker service.",
+          "TrueNorth Financial is a premium long-term investment platform. Curated funds, transparent ROI, private-banker service.",
       },
-      { property: "og:title", content: "Aurelian — Private Wealth" },
+      { property: "og:title", content: "TrueNorth Financial — Private Wealth" },
       {
         property: "og:description",
         content: "Curated funds. Transparent ROI. Private-banker service.",
@@ -26,16 +26,16 @@ function Landing() {
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="grid size-8 place-items-center rounded-md bg-navy">
+            <div className="grid size-8 place-items-center rounded-md bg-royal">
               <div className="size-3 rotate-45 border-2 border-gold" />
             </div>
             <span className="font-display text-xl font-semibold tracking-tight text-navy">
-              Aurelian
+              TrueNorth Financial
             </span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a href="#plans" className="hover:text-foreground">Plans</a>
-            <a href="#why" className="hover:text-foreground">Why Aurelian</a>
+            <a href="#why" className="hover:text-foreground">Why TrueNorth Financial</a>
             <a href="#security" className="hover:text-foreground">Security</a>
           </nav>
           <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ function Landing() {
             <Link
               to="/auth"
               search={{ mode: "register" } as never}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-royal px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
             >
               Open account
               <ArrowRight className="size-3.5" />
@@ -69,14 +69,14 @@ function Landing() {
                 Grow your capital with the calm of a private bank.
               </h1>
               <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground md:text-lg">
-                Aurelian curates long-term investment strategies across real estate, blue-chip equities,
+                TrueNorth Financial curates long-term investment strategies across real estate, blue-chip equities,
                 sustainable energy and venture — with transparent ROI and dedicated support.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <Link
                   to="/auth"
                   search={{ mode: "register" } as never}
-                  className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-medium text-white shadow-elevated transition-transform hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 rounded-lg bg-royal px-6 py-3 text-sm font-medium text-white shadow-elevated transition-transform hover:-translate-y-0.5"
                 >
                   Start investing
                   <ArrowRight className="size-4" />
@@ -148,7 +148,7 @@ function Landing() {
           </div>
         </section>
 
-        <section id="security" className="border-t border-border/60 bg-navy text-white">
+        <section id="security" className="border-t border-border/60 bg-royal text-white">
           <div className="mx-auto max-w-4xl px-5 py-16 text-center md:py-20">
             <h2 className="font-display text-4xl font-semibold md:text-5xl">
               A quieter way to build wealth.
@@ -171,7 +171,7 @@ function Landing() {
 
       <footer className="border-t border-border/60 bg-background">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 text-sm text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()} Aurelian. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} TrueNorth Financial. All rights reserved.</p>
           <p className="text-xs">Capital at risk. Past performance is not indicative of future returns.</p>
         </div>
       </footer>

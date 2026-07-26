@@ -3,7 +3,7 @@ import { recentTransactions, formatCurrency } from "@/lib/mock-data";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/transactions")({
-  head: () => ({ meta: [{ title: "Transactions — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Transactions — TrueNorth Financial" }] }),
   component: Transactions,
 });
 

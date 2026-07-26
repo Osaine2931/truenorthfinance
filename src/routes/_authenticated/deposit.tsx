@@ -5,7 +5,7 @@ import { formatCurrency, kpis } from "@/lib/mock-data";
 import { CreditCard, Building2, Bitcoin, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
-  head: () => ({ meta: [{ title: "Deposit — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Deposit — TrueNorth Financial" }] }),
   component: Deposit,
 });
 
@@ -83,7 +83,7 @@ function Deposit() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-royal py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
           {loading && <Loader2 className="size-4 animate-spin" />}
           Deposit {formatCurrency(amount)}

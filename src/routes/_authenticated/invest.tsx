@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Sparkles, Calculator, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/invest")({
-  head: () => ({ meta: [{ title: "Invest — Aurelian" }] }),
+  head: () => ({ meta: [{ title: "Invest — TrueNorth Financial" }] }),
   component: Invest,
 });
 
@@ -64,7 +64,7 @@ function Invest() {
               <span className="font-medium text-foreground">{(midRoi * 100).toFixed(1)}%</span> p.a.
             </p>
           </div>
-          <div className="glass-navy relative overflow-hidden rounded-xl p-6">
+          <div className="glass-blue relative overflow-hidden rounded-xl p-6">
             <div className="absolute -right-10 -top-10 size-32 rounded-full bg-gold/20 blur-3xl" />
             <p className="text-[10px] uppercase tracking-widest text-white/60">Projected value</p>
             <p className="mt-2 font-display text-4xl font-semibold text-white">{formatCurrency(projected)}</p>
@@ -125,7 +125,7 @@ function Invest() {
                       description: "Complete deposit to activate.",
                     });
                   }}
-                  className="flex items-center justify-center gap-1.5 rounded-md bg-navy py-2 text-xs font-medium text-white group-hover:opacity-90"
+                  className="flex items-center justify-center gap-1.5 rounded-md bg-royal py-2 text-xs font-medium text-white group-hover:opacity-90"
                 >
                   <TrendingUp className="size-3.5" />
                   Start investment

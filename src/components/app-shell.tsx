@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="grid size-8 place-items-center rounded-md bg-white/10">
             <div className="size-3 rotate-45 border-2 border-gold" />
           </div>
-          <span className="font-display text-xl font-semibold text-white">Aurelian</span>
+          <span className="font-display text-xl font-semibold text-white">TrueNorth Financial</span>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-2">
           {primaryNav.map((item) => {
@@ -83,14 +83,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile drawer */}
       {mobileNav && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-navy/60" onClick={() => setMobileNav(false)} />
+          <div className="absolute inset-0 bg-royal/60" onClick={() => setMobileNav(false)} />
           <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-sidebar text-sidebar-foreground">
             <div className="flex items-center justify-between px-5 py-5">
               <div className="flex items-center gap-2">
                 <div className="grid size-8 place-items-center rounded-md bg-white/10">
                   <div className="size-3 rotate-45 border-2 border-gold" />
                 </div>
-                <span className="font-display text-xl font-semibold text-white">Aurelian</span>
+                <span className="font-display text-xl font-semibold text-white">TrueNorth Financial</span>
               </div>
               <button
                 onClick={() => setMobileNav(false)}
@@ -160,7 +160,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
               <Link
                 to="/deposit"
-                className="hidden items-center gap-1.5 rounded-lg bg-navy px-3 py-2 text-sm font-medium text-white hover:opacity-90 sm:inline-flex"
+                className="hidden items-center gap-1.5 rounded-lg bg-royal px-3 py-2 text-sm font-medium text-white hover:opacity-90 sm:inline-flex"
               >
                 <Plus className="size-4" />
                 Deposit

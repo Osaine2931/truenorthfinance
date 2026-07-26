@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Set new password — Aurelian" },
+      { title: "Set new password — TrueNorth Financial" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -52,7 +52,7 @@ function ResetPassword() {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-royal px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
           >
             {loading && <Loader2 className="size-4 animate-spin" />}
             Update password

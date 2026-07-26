@@ -14,8 +14,8 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign in — Aurelian" },
-      { name: "description", content: "Sign in or open an Aurelian investment account." },
+      { title: "Sign in — TrueNorth Financial" },
+      { name: "description", content: "Sign in or open an TrueNorth Financial investment account." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -82,12 +82,12 @@ function AuthPage() {
   return (
     <div className="grid min-h-screen bg-background lg:grid-cols-2">
       {/* Hero panel */}
-      <aside className="glass-navy relative hidden overflow-hidden p-12 lg:flex lg:flex-col lg:justify-between">
+      <aside className="glass-blue relative hidden overflow-hidden p-12 lg:flex lg:flex-col lg:justify-between">
         <Link to="/" className="flex items-center gap-2 text-white">
           <div className="grid size-8 place-items-center rounded-md bg-white/10">
             <div className="size-3 rotate-45 border-2 border-gold" />
           </div>
-          <span className="font-display text-xl font-semibold">Aurelian</span>
+          <span className="font-display text-xl font-semibold">TrueNorth Financial</span>
         </Link>
         <div className="relative">
           <div className="mb-6 h-px w-24 bg-gold" />
@@ -97,7 +97,7 @@ function AuthPage() {
           <p className="mt-6 text-sm text-white/60">— Ancient proverb, on compounding</p>
         </div>
         <div className="text-xs text-white/40">
-          Aurelian Private Wealth · Capital at risk · Regulated custodians
+          TrueNorth Financial Private Wealth · Capital at risk · Regulated custodians
         </div>
       </aside>
 
@@ -112,7 +112,7 @@ function AuthPage() {
             Back
           </Link>
           <div className="lg:hidden">
-            <span className="font-display text-lg font-semibold text-navy">Aurelian</span>
+            <span className="font-display text-lg font-semibold text-navy">TrueNorth Financial</span>
           </div>
         </div>
 
@@ -190,7 +190,7 @@ function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-royal px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
             >
               {loading && <Loader2 className="size-4 animate-spin" />}
               {mode === "login" ? "Sign in" : "Create account"}
@@ -198,7 +198,7 @@ function AuthPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {mode === "login" ? "New to Aurelian?" : "Already have an account?"}{" "}
+            {mode === "login" ? "New to TrueNorth Financial?" : "Already have an account?"}{" "}
             <button
               type="button"
               onClick={() => setMode(mode === "login" ? "register" : "login")}

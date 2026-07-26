@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Aurelian Investments — Private Wealth design system.
+ * TrueNorth Financial Investments — Private Wealth design system.
  * Palette: navy + white + royal blue + subtle gold.
  * Type: Cormorant Garamond (serif display) + Inter (sans body).
  * Fonts are loaded via <link> in src/routes/__root.tsx.
@@ -161,7 +161,7 @@
   }
 }
 
-@utility glass-navy {
+@utility glass-blue {
   background: linear-gradient(
     135deg,
     oklch(0.22 0.05 260 / 0.98) 0%,
