@@ -1,78 +1,84 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { formatCurrency, kpis } from "@/lib/mock-data";
-import { Copy, Users, Gift, Share2 } from "lucide-react";
-import { Route as AuthRoute } from "@/routes/_authenticated/route";
+import { Copy, Check, Users, Gift } from "lucide-react";
+import { useProfile, useReferrals, useWallet, formatCurrency, formatDate } from "@/lib/api";
+import { PageHeader, SectionCard, StatCard, EmptyState, RowsSkeleton } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/referrals")({
-  head: () => ({ meta: [{ title: "Referral Program — TrueNorth Financial" }] }),
+  head: () => ({
+    meta: [
+      { title: "Referral Program — TrueNorth Financial" },
+      { name: "description", content: "Invite investors and earn commission on their funded deposits." },
+    ],
+  }),
   component: Referrals,
 });
 
 function Referrals() {
-  const { user } = AuthRoute.useRouteContext();
-  const code = (user.id ?? "AURELIAN").slice(0, 8).toUpperCase();
-  const link = `${typeof window !== "undefined" ? window.location.origin : ""}/auth?ref=${code}`;
+  const profile = useProfile();
+  const referrals = useReferrals();
+  const wallet = useWallet();
   const [copied, setCopied] = useState(false);
 
-  function handleCopy() {
-    navigator.clipboard.writeText(link);
+  const code = profile.data?.referral_code ?? "";
+  const link = typeof window !== "undefined" ? `${window.location.origin}/auth?mode=register&ref=${code}` : "";
+
+  async function copy() {
+    await navigator.clipboard.writeText(link);
     setCopied(true);
     toast.success("Referral link copied");
-    setTimeout(() => setCopied(false), 1500);
+    setTimeout(() => setCopied(false), 1600);
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl font-semibold text-navy sm:text-4xl">Referral Program</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Earn 3% of every deposit made by friends you invite — for life.
-        </p>
+    <div className="animate-fade-up space-y-6">
+      <PageHeader title="Referral Program" subtitle="Earn 5% commission on every referred deposit." />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <StatCard label="Referred investors" value={String(referrals.data?.length ?? 0)} icon={Users} />
+        <StatCard
+          label="Referral earnings"
+          value={formatCurrency(wallet.data?.referral_earnings)}
+          icon={Gift}
+          tone="success"
+        />
+        <StatCard label="Your code" value={code || "—"} icon={Copy} tone="primary" loading={profile.isLoading} />
       </div>
 
-      <div className="glass-blue relative overflow-hidden rounded-2xl p-6 shadow-elevated">
-        <div className="absolute -right-16 -top-16 size-48 rounded-full bg-gold/20 blur-3xl" />
-        <div className="relative">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/60">
-            Total referral earnings
-          </p>
-          <p className="mt-2 font-display text-4xl font-semibold text-white sm:text-5xl">
-            {formatCurrency(kpis.referralEarnings)}
-          </p>
-          <div className="gold-hairline mt-4 w-16" />
-          <p className="mt-4 text-sm text-white/70">Your referral link</p>
-          <div className="mt-2 flex gap-2">
-            <div className="flex-1 truncate rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-xs text-white">
-              {link}
-            </div>
-            <button
-              onClick={handleCopy}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-2 text-xs font-medium text-navy hover:opacity-90"
-            >
-              <Copy className="size-3.5" />
-              {copied ? "Copied" : "Copy"}
-            </button>
-          </div>
+      <SectionCard title="Your invitation link">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <code className="min-w-0 flex-1 truncate rounded-xl bg-secondary px-3 py-3 text-xs">{link}</code>
+          <button
+            onClick={copy}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-royal px-4 py-3 text-sm font-semibold text-white"
+          >
+            {copied ? <Check className="size-4" /> : <Copy className="size-4" />} Copy link
+          </button>
         </div>
-      </div>
+      </SectionCard>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {[
-          { icon: Share2, label: "Share your link", value: "1" },
-          { icon: Users, label: "Friend signs up & deposits", value: "2" },
-          { icon: Gift, label: "You earn 3% forever", value: "3" },
-        ].map((step) => (
-          <div key={step.label} className="surface-card p-5">
-            <span className="font-display text-3xl font-semibold text-gold">{step.value}</span>
-            <div className="mt-3 flex items-center gap-2">
-              <step.icon className="size-4 text-royal" />
-              <p className="text-sm font-medium text-foreground">{step.label}</p>
-            </div>
+      <SectionCard title="Your referrals" bodyClassName="p-0">
+        {referrals.isLoading ? (
+          <div className="p-5">
+            <RowsSkeleton rows={3} />
           </div>
-        ))}
-      </div>
+        ) : referrals.data?.length ? (
+          <ul>
+            {referrals.data.map((r) => (
+              <li key={r.id} className="flex items-center justify-between border-b border-border/60 px-5 py-3.5 last:border-0">
+                <div>
+                  <p className="text-sm font-medium text-navy">Referred investor</p>
+                  <p className="text-xs text-muted-foreground">Joined {formatDate(r.created_at)}</p>
+                </div>
+                <p className="text-sm font-semibold text-success">{formatCurrency(r.earnings)}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState icon={Users} title="No referrals yet" description="Share your link to start earning." />
+        )}
+      </SectionCard>
     </div>
   );
 }

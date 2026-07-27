@@ -1,361 +1,311 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PortfolioChart, DistributionChart, PerformanceChart } from "@/components/charts";
 import {
-  kpis,
-  activeInvestments,
-  recentTransactions,
-  recentActivities,
-  notifications,
-  distribution,
-  formatCurrency,
-  formatCompact,
-} from "@/lib/mock-data";
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  TrendingUp,
   Wallet as WalletIcon,
-  Briefcase,
-  Users,
-  Plus,
+  TrendingUp,
+  PiggyBank,
+  Gift,
+  Layers,
+  ArrowDownToLine,
   ArrowUpFromLine,
+  Users,
   Bell,
-  Activity,
-  PieChart as PieIcon,
-  Sparkles,
+  Activity as ActivityIcon,
+  Receipt,
+  BadgeDollarSign,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
+import {
+  useWallet,
+  useInvestments,
+  useTransactions,
+  useActivities,
+  useNotifications,
+  formatCurrency,
+  formatDateTime,
+  buildPortfolioSeries,
+  buildAllocation,
+  buildPerformance,
+  BONUS_NOTICE,
+} from "@/lib/api";
+import { PortfolioChart, PerformanceChart, AllocationChart } from "@/components/charts";
+import { PageHeader, SectionCard, StatCard, StatusPill, EmptyState, RowsSkeleton } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — TrueNorth Financial" },
-      { name: "description", content: "Your TrueNorth Financial investment portfolio at a glance." },
+      { name: "description", content: "Track portfolio value, investments, profit and activity in real time." },
     ],
   }),
   component: Dashboard,
 });
 
 const quickActions = [
-  { to: "/deposit", label: "Deposit", icon: Plus },
-  { to: "/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
+  { to: "/deposit", label: "Deposit", icon: ArrowDownToLine },
   { to: "/invest", label: "Invest", icon: TrendingUp },
+  { to: "/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
   { to: "/referrals", label: "Refer", icon: Users },
-];
+] as const;
 
 function Dashboard() {
+  const wallet = useWallet();
+  const investments = useInvestments();
+  const transactions = useTransactions();
+  const activities = useActivities(6);
+  const notifications = useNotifications(5);
+
+  const w = wallet.data;
+  const activeInvestments = (investments.data ?? []).filter((i) => i.status === "active");
+  const investedNow = activeInvestments.reduce((sum, i) => sum + Number(i.amount), 0);
+  const portfolioValue =
+    Number(w?.available_balance ?? 0) +
+    Number(w?.welcome_bonus ?? 0) +
+    investedNow +
+    Number(w?.total_profit ?? 0);
+
+  const series = buildPortfolioSeries(transactions.data ?? [], portfolioValue);
+  const allocation = buildAllocation(investments.data ?? []);
+  const performance = buildPerformance(activeInvestments);
+  const recentTx = (transactions.data ?? []).slice(0, 6);
+  const unlocked = Boolean(w?.has_deposited);
+
   return (
-    <div className="space-y-6 animate-fade-up">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="truncate font-display text-2xl font-bold text-navy sm:text-3xl">Dashboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Welcome back — here's your portfolio today.</p>
-        </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-success/10 px-3 py-1.5 text-xs font-semibold text-success">
-          <Sparkles className="size-3.5" /> +14.2% YTD
-        </span>
-      </div>
+    <div className="animate-fade-up space-y-6">
+      <PageHeader
+        title="Dashboard"
+        subtitle="A live view of your wealth with TrueNorth Financial."
+        action={
+          <Link to="/deposit" className="hidden rounded-xl bg-royal px-4 py-2.5 text-sm font-semibold text-white sm:inline-flex">
+            Fund account
+          </Link>
+        }
+      />
 
-      {/* KPI grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <div className="glass-blue relative overflow-hidden rounded-3xl p-6 shadow-elevated lg:col-span-2 lg:row-span-2">
-          <div className="absolute -right-16 -top-16 size-48 rounded-full bg-white/20 blur-3xl" />
-          <div className="relative">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-white/70">
-                Portfolio Value
-              </span>
-              <span className="size-1.5 animate-pulse rounded-full bg-white" />
-            </div>
-            <h2 className="mt-2 font-display text-4xl font-bold leading-tight text-white sm:text-5xl">
-              {formatCurrency(kpis.totalPortfolio)}
-            </h2>
-            <p className="mt-2 text-sm text-white/80">
-              +14.2% YTD · +{formatCompact(kpis.totalProfit)}
-            </p>
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-white/20 bg-white/10 p-3">
-                <p className="text-[10px] uppercase tracking-wider text-white/70">Invested</p>
-                <p className="mt-1 text-sm font-semibold text-white">{formatCompact(kpis.totalInvested)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/20 bg-white/10 p-3">
-                <p className="text-[10px] uppercase tracking-wider text-white/70">Profit</p>
-                <p className="mt-1 text-sm font-semibold text-white">+{formatCompact(kpis.totalProfit)}</p>
-              </div>
-            </div>
-            <div className="mt-6 flex gap-2">
-              <Link
-                to="/deposit"
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2.5 text-xs font-semibold text-royal transition-transform hover:-translate-y-0.5"
-              >
-                <Plus className="size-3.5" /> Deposit
-              </Link>
-              <Link
-                to="/invest"
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/40 bg-white/10 px-3 py-2.5 text-xs font-semibold text-white hover:bg-white/20"
-              >
-                Invest
-              </Link>
-            </div>
-          </div>
+      {!unlocked && (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-warning/20 text-warning">
+            <Lock className="size-5" />
+          </span>
+          <p className="min-w-0 flex-1 text-sm text-foreground">{BONUS_NOTICE}</p>
+          <Link to="/deposit" className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white">
+            Deposit now
+          </Link>
         </div>
+      )}
 
-        <MiniKpi label="Total Invested" value={formatCompact(kpis.totalInvested)} icon={Briefcase} />
-        <MiniKpi label="Available Balance" value={formatCurrency(kpis.availableBalance)} icon={WalletIcon} />
-        <MiniKpi
-          label="Total Profit"
-          value={`+${formatCompact(kpis.totalProfit)}`}
+      {/* KPIs */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Portfolio value"
+          value={formatCurrency(portfolioValue)}
+          icon={BadgeDollarSign}
+          tone="primary"
+          loading={wallet.isLoading}
+        />
+        <StatCard
+          label="Total deposited"
+          value={formatCurrency(w?.total_deposited)}
+          icon={ArrowDownToLine}
+          loading={wallet.isLoading}
+        />
+        <StatCard
+          label="Total invested"
+          value={formatCurrency(investedNow)}
+          icon={PiggyBank}
+          loading={investments.isLoading}
+        />
+        <StatCard
+          label="Available balance"
+          value={formatCurrency(w?.available_balance)}
+          icon={WalletIcon}
+          hint={`+ ${formatCurrency(w?.welcome_bonus)} welcome bonus (locked)`}
+          loading={wallet.isLoading}
+        />
+        <StatCard
+          label="Total profit"
+          value={formatCurrency(w?.total_profit)}
           icon={TrendingUp}
-          accent="success"
+          tone="success"
+          loading={wallet.isLoading}
         />
-        <MiniKpi label="Active Plans" value={String(kpis.activePlans).padStart(2, "0")} icon={PieIcon} />
-        <MiniKpi
-          label="Referral Earnings"
-          value={formatCurrency(kpis.referralEarnings)}
-          icon={Users}
-          accent="royal"
+        <StatCard
+          label="Referral earnings"
+          value={formatCurrency(w?.referral_earnings)}
+          icon={Gift}
+          loading={wallet.isLoading}
         />
-        <MiniKpi label="Wallet" value={formatCurrency(kpis.availableBalance)} icon={WalletIcon} />
+        <StatCard
+          label="Active plans"
+          value={String(activeInvestments.length)}
+          icon={Layers}
+          loading={investments.isLoading}
+        />
+        <StatCard
+          label="Welcome bonus"
+          value={formatCurrency(w?.welcome_bonus)}
+          icon={Gift}
+          hint="Promotional · not withdrawable"
+          loading={wallet.isLoading}
+        />
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-4 gap-3">
         {quickActions.map((a) => (
           <Link
             key={a.to}
             to={a.to}
-            className="hover-lift surface-card flex items-center gap-3 p-4"
+            className="hover-lift surface-card flex flex-col items-center gap-2 rounded-2xl px-2 py-4 text-center"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-royal-soft text-royal">
+            <span className="grid size-10 place-items-center rounded-xl bg-royal-soft text-royal">
               <a.icon className="size-4" />
             </span>
-            <span className="truncate text-sm font-semibold text-navy">{a.label}</span>
+            <span className="text-xs font-semibold text-navy">{a.label}</span>
           </Link>
         ))}
       </div>
 
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="surface-card p-5 lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="font-display text-lg font-semibold text-navy">Portfolio Growth</h3>
-              <p className="text-xs text-muted-foreground">Last 12 months</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-royal-soft px-3 py-1 text-xs font-semibold text-royal">
-              +14.2%
-            </span>
+        <SectionCard title="Portfolio growth" description="Last 8 months" className="lg:col-span-2">
+          <div className="h-64 sm:h-72">
+            <PortfolioChart data={series} />
           </div>
+        </SectionCard>
+        <SectionCard title="Asset allocation" description="By active plan">
+          {allocation.length ? (
+            <>
+              <div className="h-44">
+                <AllocationChart data={allocation} />
+              </div>
+              <ul className="mt-3 space-y-2">
+                {allocation.map((a) => (
+                  <li key={a.name} className="flex items-center gap-2 text-xs">
+                    <span className="size-2.5 rounded-full" style={{ background: a.color }} />
+                    <span className="min-w-0 flex-1 truncate text-muted-foreground">{a.name}</span>
+                    <span className="font-semibold text-navy">{a.value}%</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <EmptyState icon={Layers} title="No allocation yet" description="Start a plan to see your mix." />
+          )}
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Investment performance" description="Capital vs. profit per active plan">
+        {performance.length ? (
           <div className="h-64">
-            <PortfolioChart />
+            <PerformanceChart data={performance} />
           </div>
-        </div>
+        ) : (
+          <EmptyState
+            icon={TrendingUp}
+            title="No active investments"
+            description="Your performance chart appears once you fund a plan."
+          />
+        )}
+      </SectionCard>
 
-        <div className="surface-card p-5">
-          <h3 className="font-display text-lg font-semibold text-navy">Investment Allocation</h3>
-          <p className="text-xs text-muted-foreground">By strategy</p>
-          <div className="relative mx-auto mt-3 h-40">
-            <DistributionChart />
-          </div>
-          <div className="mt-4 space-y-2">
-            {distribution.map((d) => (
-              <div key={d.name} className="flex items-center justify-between text-xs">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="size-2.5 shrink-0 rounded-sm" style={{ background: d.color }} />
-                  <span className="truncate text-foreground">{d.name}</span>
-                </div>
-                <span className="shrink-0 font-semibold text-muted-foreground">{d.value}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Performance + Notifications */}
+      {/* Lists */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="surface-card p-5 lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="font-display text-lg font-semibold text-navy">Investment Performance</h3>
-              <p className="text-xs text-muted-foreground">Monthly net return</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-success/10 px-3 py-1 text-xs font-semibold text-success">
-              Avg 4.1%
-            </span>
-          </div>
-          <div className="h-56">
-            <PerformanceChart />
-          </div>
-        </div>
-
-        <div className="surface-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-lg font-semibold text-navy">Notifications</h3>
-            <Link to="/notifications" className="text-xs font-semibold text-royal">
-              View all
+        <SectionCard
+          title="Recent transactions"
+          className="lg:col-span-2"
+          bodyClassName="p-0"
+          action={
+            <Link to="/transactions" className="inline-flex items-center gap-1 text-xs font-semibold text-royal">
+              View all <ArrowRight className="size-3" />
             </Link>
-          </div>
-          <div className="space-y-3">
-            {notifications.map((n) => (
-              <div key={n.id} className="flex gap-3 rounded-2xl border border-border p-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-royal-soft text-royal">
-                  <Bell className="size-3.5" />
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-navy">{n.title}</p>
-                  <p className="line-clamp-2 text-xs text-muted-foreground">{n.body}</p>
-                  <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">{n.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Active plans + Transactions */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="surface-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-lg font-semibold text-navy">Active Investment Plans</h3>
-            <Link to="/my-investments" className="text-xs font-semibold text-royal">
-              View all
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {activeInvestments.map((inv) => (
-              <div key={inv.id} className="rounded-2xl border border-border p-3 transition-colors hover:border-royal/40">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-navy">{inv.plan}</p>
-                    <p className="text-xs text-muted-foreground">{formatCurrency(inv.amount)}</p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
-                      inv.status === "Premium"
-                        ? "bg-royal-soft text-royal"
-                        : "bg-success/10 text-success"
-                    }`}
-                  >
-                    {inv.status}
-                  </span>
-                </div>
-                <div className="mt-3">
-                  <div className="mb-1 flex items-center justify-between text-[10px] text-muted-foreground">
-                    <span>Progress</span>
-                    <span>{inv.progress}%</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${inv.progress}%`,
-                        background: "var(--color-royal)",
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="surface-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-lg font-semibold text-navy">Recent Transactions</h3>
-            <Link to="/transactions" className="text-xs font-semibold text-royal">
-              View all
-            </Link>
-          </div>
-          <div className="divide-y divide-border">
-            {recentTransactions.slice(0, 5).map((t) => (
-              <div key={t.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div
-                    className={`grid size-9 shrink-0 place-items-center rounded-full ${
-                      t.direction === "in" ? "bg-success/10 text-success" : "bg-royal-soft text-royal"
-                    }`}
-                  >
-                    {t.direction === "in" ? (
-                      <ArrowDownLeft className="size-4" />
-                    ) : (
-                      <ArrowUpRight className="size-4" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-navy">{t.type}</p>
-                    <p className="text-xs text-muted-foreground">{t.date}</p>
-                  </div>
-                </div>
-                <p
-                  className={`shrink-0 text-sm font-bold ${
-                    t.direction === "in" ? "text-success" : "text-foreground"
-                  }`}
-                >
-                  {t.direction === "in" ? "+" : "-"}
-                  {formatCurrency(t.amount)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent activities */}
-      <div className="surface-card p-5">
-        <h3 className="font-display text-lg font-semibold text-navy">Recent Activities</h3>
-        <div className="mt-4 space-y-4">
-          {recentActivities.map((a) => (
-            <div key={a.id} className="flex gap-3">
-              <div className="flex flex-col items-center">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-royal-soft text-royal">
-                  <Activity className="size-3.5" />
-                </span>
-                <span className="mt-1 w-px flex-1 bg-border last:hidden" />
-              </div>
-              <div className="min-w-0 pb-1">
-                <p className="truncate text-sm font-semibold text-navy">{a.title}</p>
-                <p className="truncate text-xs text-muted-foreground">{a.meta}</p>
-                <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{a.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MiniKpi({
-  label,
-  value,
-  icon: Icon,
-  accent,
-}: {
-  label: string;
-  value: string;
-  icon: typeof WalletIcon;
-  accent?: "royal" | "success";
-}) {
-  return (
-    <div className="hover-lift surface-card p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {label}
-        </p>
-        <div
-          className={`grid size-8 shrink-0 place-items-center rounded-xl ${
-            accent === "success" ? "bg-success/10 text-success" : "bg-royal-soft text-royal"
-          }`}
+          }
         >
-          <Icon className="size-3.5" />
+          {transactions.isLoading ? (
+            <div className="p-5">
+              <RowsSkeleton />
+            </div>
+          ) : recentTx.length ? (
+            <ul>
+              {recentTx.map((t) => (
+                <li
+                  key={t.id}
+                  className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span
+                      className={`grid size-9 shrink-0 place-items-center rounded-xl ${
+                        t.direction === "in" ? "bg-success/10 text-success" : "bg-royal-soft text-royal"
+                      }`}
+                    >
+                      {t.direction === "in" ? (
+                        <ArrowDownToLine className="size-4" />
+                      ) : (
+                        <ArrowUpFromLine className="size-4" />
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-navy">{t.type}</p>
+                      <p className="truncate text-xs text-muted-foreground">{formatDateTime(t.created_at)}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}>
+                      {t.direction === "in" ? "+" : "−"}
+                      {formatCurrency(t.amount)}
+                    </p>
+                    <StatusPill status={t.status} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState icon={Receipt} title="No transactions yet" description="Your ledger will appear here." />
+          )}
+        </SectionCard>
+
+        <div className="space-y-4">
+          <SectionCard title="Notifications" bodyClassName="p-0">
+            {notifications.data?.length ? (
+              <ul>
+                {notifications.data.map((n) => (
+                  <li key={n.id} className="border-b border-border/60 px-5 py-3.5 last:border-0">
+                    <div className="flex items-start gap-2">
+                      <Bell className="mt-0.5 size-3.5 shrink-0 text-royal" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-navy">{n.title}</p>
+                        <p className="line-clamp-2 text-xs text-muted-foreground">{n.body}</p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState icon={Bell} title="All caught up" />
+            )}
+          </SectionCard>
+
+          <SectionCard title="Recent activity" bodyClassName="p-0">
+            {activities.data?.length ? (
+              <ul>
+                {activities.data.map((a) => (
+                  <li key={a.id} className="flex items-start gap-2 border-b border-border/60 px-5 py-3 last:border-0">
+                    <ActivityIcon className="mt-0.5 size-3.5 shrink-0 text-royal" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm text-navy">{a.action}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {a.detail} · {formatDateTime(a.created_at)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState icon={ActivityIcon} title="No activity yet" />
+            )}
+          </SectionCard>
         </div>
       </div>
-      <p
-        className={`font-display text-2xl font-bold ${
-          accent === "success" ? "text-success" : "text-navy"
-        }`}
-      >
-        {value}
-      </p>
     </div>
   );
 }
