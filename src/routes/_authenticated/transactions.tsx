@@ -1,56 +1,69 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { recentTransactions, formatCurrency } from "@/lib/mock-data";
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Receipt } from "lucide-react";
+import { useTransactions, formatCurrency, formatDateTime } from "@/lib/api";
+import { PageHeader, SectionCard, StatusPill, EmptyState, RowsSkeleton } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/transactions")({
-  head: () => ({ meta: [{ title: "Transactions — TrueNorth Financial" }] }),
-  component: Transactions,
+  head: () => ({
+    meta: [
+      { title: "Transactions — TrueNorth Financial" },
+      { name: "description", content: "Full ledger of deposits, withdrawals, investments and returns." },
+    ],
+  }),
+  component: TransactionsPage,
 });
 
-function Transactions() {
+function TransactionsPage() {
+  const transactions = useTransactions();
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl font-semibold text-navy sm:text-4xl">Transactions</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Full history of deposits, withdrawals, and returns.</p>
-      </div>
-      <div className="surface-card overflow-hidden">
-        {recentTransactions.map((t) => (
-          <div
-            key={t.id}
-            className="flex items-center justify-between border-b border-border p-5 last:border-0"
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <div
-                className={`grid size-10 shrink-0 place-items-center rounded-full border border-border bg-background ${
-                  t.direction === "in" ? "text-success" : "text-navy"
-                }`}
-              >
-                {t.direction === "in" ? (
-                  <ArrowDownLeft className="size-4" />
-                ) : (
-                  <ArrowUpRight className="size-4" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate font-medium text-foreground">{t.type}</p>
-                <p className="text-xs text-muted-foreground">{t.date}</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p
-                className={`font-semibold ${
-                  t.direction === "in" ? "text-success" : "text-foreground"
-                }`}
-              >
-                {t.direction === "in" ? "+" : "-"}
-                {formatCurrency(t.amount)}
-              </p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Completed</p>
-            </div>
+    <div className="animate-fade-up space-y-6">
+      <PageHeader title="Transactions" subtitle="Every movement on your account, in one ledger." />
+      <SectionCard bodyClassName="p-0">
+        {transactions.isLoading ? (
+          <div className="p-5">
+            <RowsSkeleton rows={6} />
           </div>
-        ))}
-      </div>
+        ) : transactions.data?.length ? (
+          <ul>
+            {transactions.data.map((t) => (
+              <li
+                key={t.id}
+                className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    className={`grid size-10 shrink-0 place-items-center rounded-xl ${
+                      t.direction === "in" ? "bg-success/10 text-success" : "bg-royal-soft text-royal"
+                    }`}
+                  >
+                    {t.direction === "in" ? (
+                      <ArrowDownToLine className="size-4" />
+                    ) : (
+                      <ArrowUpFromLine className="size-4" />
+                    )}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-navy">{t.type}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {t.description ?? formatDateTime(t.created_at)}
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className={`font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}>
+                    {t.direction === "in" ? "+" : "−"}
+                    {formatCurrency(t.amount)}
+                  </p>
+                  <StatusPill status={t.status} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState icon={Receipt} title="No transactions yet" description="Fund your account to get started." />
+        )}
+      </SectionCard>
     </div>
   );
 }
