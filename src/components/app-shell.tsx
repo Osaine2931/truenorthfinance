@@ -1,13 +1,13 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Menu, X, Bell, Search, LogOut, Plus, Moon, Sun, Wallet as WalletIcon } from "lucide-react";
-import { primaryNav, bottomNav } from "@/lib/nav";
+import { primaryNav, bottomNav, adminNav } from "@/lib/nav";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Route as AuthRoute } from "@/routes/_authenticated/route";
 import { BrandLockup } from "@/components/brand";
-import { kpis, formatCurrency } from "@/lib/mock-data";
+import { useWallet, useIsAdmin, useNotifications, formatCurrency } from "@/lib/api";
 
 function useTheme() {
   const [dark, setDark] = useState(false);
@@ -35,14 +35,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { user } = AuthRoute.useRouteContext();
   const { dark, toggle } = useTheme();
+  const wallet = useWallet();
+  const isAdmin = useIsAdmin();
+  const notifications = useNotifications(20);
 
-  const initials = (user.user_metadata?.full_name ?? user.email ?? "U")
+  const unread = (notifications.data ?? []).filter((n) => !n.is_read).length;
+  const navItems = isAdmin.data ? [...primaryNav, adminNav] : primaryNav;
+
+  const displayName = (user.user_metadata?.full_name as string) ?? user.email ?? "Investor";
+  const initials = displayName
     .split(" ")
     .map((s: string) => s[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const displayName = (user.user_metadata?.full_name as string) ?? user.email ?? "Investor";
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
@@ -54,7 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const navLinks = (onClick?: () => void) => (
     <nav className="flex-1 overflow-y-auto px-3 py-2">
-      {primaryNav.map((item) => {
+      {navItems.map((item) => {
         const active = pathname === item.to;
         return (
           <Link
@@ -69,6 +75,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <item.icon className="size-4 shrink-0" />
             <span className="truncate">{item.label}</span>
+            {item.to === "/notifications" && unread > 0 && (
+              <span className="ml-auto rounded-full bg-royal px-1.5 py-0.5 text-[10px] font-bold text-white">
+                {unread}
+              </span>
+            )}
           </Link>
         );
       })}
@@ -92,7 +103,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-navy">{displayName}</p>
-              <p className="truncate text-xs text-muted-foreground">Premium account</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {isAdmin.data ? "Administrator" : "Private client"}
+              </p>
             </div>
             <button
               onClick={handleSignOut}
@@ -108,10 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile slide-out drawer */}
       {mobileNav && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-navy/40 backdrop-blur-sm"
-            onClick={() => setMobileNav(false)}
-          />
+          <div className="absolute inset-0 bg-navy/40 backdrop-blur-sm" onClick={() => setMobileNav(false)} />
           <aside className="absolute inset-y-0 left-0 flex w-[17rem] flex-col bg-sidebar shadow-elevated animate-fade-up">
             <div className="flex items-center justify-between px-4 py-4">
               <BrandLockup compact />
@@ -122,6 +132,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 <X className="size-5" />
               </button>
+            </div>
+            <div className="mx-4 mb-2 rounded-2xl bg-royal p-4 text-white">
+              <p className="text-[10px] uppercase tracking-widest text-white/70">Available balance</p>
+              <p className="font-display text-2xl font-semibold">
+                {formatCurrency(wallet.data?.available_balance)}
+              </p>
             </div>
             {navLinks(() => setMobileNav(false))}
             <button
@@ -154,14 +170,18 @@ export function AppShell({ children }: { children: ReactNode }) {
                 className="w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
             </div>
-            <div className="col-start-2 md:hidden" />
+            <div className="col-start-2 md:hidden">
+              <Link to="/dashboard" className="lg:hidden">
+                <BrandLockup compact />
+              </Link>
+            </div>
             <div className="flex items-center gap-2">
               <Link
                 to="/wallet"
                 className="hidden items-center gap-2 rounded-xl border border-border bg-secondary px-3 py-2 text-sm font-semibold text-navy transition-colors hover:border-royal sm:inline-flex"
               >
                 <WalletIcon className="size-4 text-royal" />
-                {formatCurrency(kpis.availableBalance)}
+                {formatCurrency(wallet.data?.available_balance)}
               </Link>
               <button
                 onClick={toggle}
@@ -176,7 +196,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 aria-label="Notifications"
               >
                 <Bell className="size-4" />
-                <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-royal ring-2 ring-background" />
+                {unread > 0 && (
+                  <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-royal ring-2 ring-background" />
+                )}
               </Link>
               <Link
                 to="/deposit"
