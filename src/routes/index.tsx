@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ShieldCheck, TrendingUp, Sparkles } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
+import { MarketHeroCanvas } from "@/components/market-hero";
+import { useRedirectIfAuthenticated } from "@/hooks/use-session-redirect";
 
 export const Route = createFileRoute("/")({
   head: () => ({
