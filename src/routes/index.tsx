@@ -58,17 +58,10 @@ function Landing() {
       </header>
 
       <main>
-        {/* Animated market hero — decorative branding visual */}
         <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#FFFFFF_100%)]">
           <div className="pointer-events-none absolute inset-0 animate-[pulse_9s_ease-in-out_infinite] bg-[radial-gradient(60%_60%_at_50%_0%,rgba(124,200,255,0.35),transparent_70%)]" />
-          <div className="relative mx-auto max-w-6xl px-5 pt-10 md:pt-14">
-            <div className="relative h-[220px] overflow-hidden rounded-[20px] border border-border/70 bg-white/60 shadow-[0_30px_80px_-40px_rgba(77,163,255,0.55)] backdrop-blur-sm sm:h-[280px] md:h-[360px]">
-              <MarketHeroCanvas />
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.85),transparent_18%,transparent_82%,rgba(255,255,255,0.85))]" />
-            </div>
-          </div>
 
-          <div className="relative mx-auto max-w-3xl px-5 pb-16 pt-10 text-center md:pb-24">
+          <div className="relative mx-auto max-w-3xl px-5 pb-10 pt-14 text-center md:pt-20">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-royal/20 bg-royal-soft px-3 py-1 text-xs font-medium text-royal">
               <Sparkles className="size-3" />
               Private wealth, made accessible
@@ -96,7 +89,16 @@ function Landing() {
               </Link>
             </div>
           </div>
+
+          {/* Animated market visual — decorative branding only */}
+          <div className="relative mx-auto max-w-6xl px-5 pb-16 md:pb-20">
+            <div className="relative h-[220px] overflow-hidden rounded-[20px] border border-border/70 bg-white/60 shadow-[0_30px_80px_-40px_rgba(77,163,255,0.55)] backdrop-blur-sm sm:h-[280px] md:h-[360px]">
+              <MarketHeroCanvas />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.85),transparent_18%,transparent_82%,rgba(255,255,255,0.85))]" />
+            </div>
+          </div>
         </section>
+
 
 
         <section id="why" className="border-y border-border/60 bg-card">
