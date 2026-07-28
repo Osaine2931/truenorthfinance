@@ -26,11 +26,11 @@ export function BrandLockup({
 }) {
   return (
     <span className={cn("flex min-w-0 items-center gap-2.5", className)}>
-      <BrandMark className={cn(compact ? "size-8" : "size-10", tone === "invert" && "bg-white/90 p-1")} />
+      <BrandMark className={cn(compact ? "size-9" : "size-12", tone === "invert" && "bg-white/90 p-1")} />
       <span className="min-w-0 leading-tight">
         <span
           className={cn(
-            "block truncate font-display text-[0.95rem] font-bold tracking-tight",
+            "block truncate font-display text-[1.15rem] font-bold tracking-tight",
             tone === "invert" ? "text-white" : "text-navy",
           )}
         >
@@ -38,7 +38,7 @@ export function BrandLockup({
         </span>
         <span
           className={cn(
-            "block truncate text-[0.6rem] font-semibold uppercase tracking-[0.22em]",
+            "block truncate text-[0.7rem] font-semibold uppercase tracking-[0.22em]",
             tone === "invert" ? "text-white/70" : "text-royal",
           )}
         >
