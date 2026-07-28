@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ShieldCheck, TrendingUp, Sparkles } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
+import { MarketHeroCanvas } from "@/components/market-hero";
+import { useRedirectIfAuthenticated } from "@/hooks/use-session-redirect";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,6 +24,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  useRedirectIfAuthenticated();
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
@@ -39,14 +43,14 @@ function Landing() {
               to="/auth"
               className="hidden rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent sm:inline-flex"
             >
-              Sign in
+              Login
             </Link>
             <Link
               to="/auth"
               search={{ mode: "register" } as never}
               className="inline-flex items-center gap-1.5 rounded-lg bg-royal px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
             >
-              Open account
+              Get Started
               <ArrowRight className="size-3.5" />
             </Link>
           </div>
@@ -54,40 +58,46 @@ function Landing() {
       </header>
 
       <main>
-        <section className="relative overflow-hidden">
-          <div className="mx-auto max-w-6xl px-5 py-16 md:py-28">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold-soft px-3 py-1 text-xs font-medium text-navy">
-                <Sparkles className="size-3 text-gold" />
-                Private wealth, made accessible
-              </div>
-              <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight text-navy md:text-7xl">
-                Grow your capital with the calm of a private bank.
-              </h1>
-              <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground md:text-lg">
-                TrueNorth Financial curates long-term investment strategies across real estate, blue-chip equities,
-                sustainable energy and venture — with transparent ROI and dedicated support.
-              </p>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  to="/auth"
-                  search={{ mode: "register" } as never}
-                  className="inline-flex items-center gap-2 rounded-lg bg-royal px-6 py-3 text-sm font-medium text-white shadow-elevated transition-transform hover:-translate-y-0.5"
-                >
-                  Start investing
-                  <ArrowRight className="size-4" />
-                </Link>
-                <a
-                  href="#plans"
-                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-6 py-3 text-sm font-medium text-foreground hover:bg-accent"
-                >
-                  View plans
-                </a>
-              </div>
-              <div className="gold-hairline mx-auto mt-16 w-40" />
+        {/* Animated market hero — decorative branding visual */}
+        <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#FFFFFF_100%)]">
+          <div className="pointer-events-none absolute inset-0 animate-[pulse_9s_ease-in-out_infinite] bg-[radial-gradient(60%_60%_at_50%_0%,rgba(124,200,255,0.35),transparent_70%)]" />
+          <div className="relative mx-auto max-w-6xl px-5 pt-10 md:pt-14">
+            <div className="relative h-[220px] overflow-hidden rounded-[20px] border border-border/70 bg-white/60 shadow-[0_30px_80px_-40px_rgba(77,163,255,0.55)] backdrop-blur-sm sm:h-[280px] md:h-[360px]">
+              <MarketHeroCanvas />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.85),transparent_18%,transparent_82%,rgba(255,255,255,0.85))]" />
+            </div>
+          </div>
+
+          <div className="relative mx-auto max-w-3xl px-5 pb-16 pt-10 text-center md:pb-24">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-royal/20 bg-royal-soft px-3 py-1 text-xs font-medium text-royal">
+              <Sparkles className="size-3" />
+              Private wealth, made accessible
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl md:text-6xl">
+              TRUENORTH FINANCIAL
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground sm:text-base">
+              Secure Wealth • Long-Term Investments • Financial Growth
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to="/auth"
+                search={{ mode: "register" } as never}
+                className="inline-flex items-center gap-2 rounded-xl bg-royal px-7 py-3.5 text-sm font-semibold text-white shadow-[0_20px_40px_-18px_var(--color-royal)] transition-transform hover:-translate-y-0.5"
+              >
+                Get Started
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+              >
+                Login
+              </Link>
             </div>
           </div>
         </section>
+
 
         <section id="why" className="border-y border-border/60 bg-card">
           <div className="mx-auto grid max-w-6xl gap-6 px-5 py-16 md:grid-cols-3">

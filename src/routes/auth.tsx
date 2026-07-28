@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
+import { useRedirectIfAuthenticated, resolveHomePath } from "@/hooks/use-session-redirect";
 
 type AuthSearch = { mode?: "login" | "register"; redirect?: string };
 
@@ -31,6 +32,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  useRedirectIfAuthenticated();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,12 +51,13 @@ function AuthPage() {
         toast.success("Account created", {
           description: "Check your email to verify your address.",
         });
-        navigate({ to: "/dashboard" });
+        navigate({ to: await resolveHomePath(), replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back");
-        navigate({ to: (search.redirect as "/dashboard") ?? "/dashboard" });
+        const home = await resolveHomePath();
+        navigate({ to: (search.redirect as "/dashboard") ?? home, replace: true });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -72,7 +75,7 @@ function AuthPage() {
       });
       if (result.error) throw result.error;
       if (result.redirected) return;
-      navigate({ to: "/dashboard" });
+      navigate({ to: await resolveHomePath(), replace: true });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(msg);
