@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Check, Lock, Bitcoin, Loader2 } from "lucide-react";
+import { Copy, Check, Lock, Bitcoin, Loader2, CreditCard, ShieldCheck } from "lucide-react";
 import { useCryptoMethods, useDeposits, useWallet, useCreateDeposit, formatCurrency, formatDateTime, MIN_DEPOSIT } from "@/lib/api";
+import { getPaymentProviders, createPaymentProviderStub } from "@/lib/payments";
 import {
   PageHeader,
   SectionCard,
@@ -17,8 +18,8 @@ import {
 export const Route = createFileRoute("/_authenticated/deposit")({
   head: () => ({
     meta: [
-      { title: "Deposit — TrueNorth Financial" },
-      { name: "description", content: "Fund your TrueNorth account with Bitcoin, Ethereum, USDT, BNB or Solana." },
+      { title: "Payments — TrueNorth Financial" },
+      { name: "description", content: "Prepare wallet funding through the payments architecture for future gateway integration." },
     ],
   }),
   component: DepositPage,
@@ -29,6 +30,7 @@ function DepositPage() {
   const deposits = useDeposits();
   const wallet = useWallet();
   const createDeposit = useCreateDeposit();
+  const providers = useMemo(() => getPaymentProviders(), []);
 
   const [methodId, setMethodId] = useState<string | null>(null);
   const [amount, setAmount] = useState(MIN_DEPOSIT);
@@ -71,8 +73,8 @@ function DepositPage() {
   return (
     <div className="animate-fade-up space-y-6">
       <PageHeader
-        title="Deposit"
-        subtitle={`Cryptocurrency only · minimum ${formatCurrency(MIN_DEPOSIT, 0)} per deposit.`}
+        title="Payments"
+        subtitle={`Fund your wallet and prepare future gateway integrations. Minimum ${formatCurrency(MIN_DEPOSIT, 0)}.`}
       />
 
       {!wallet.data?.has_deposited && (
@@ -85,6 +87,42 @@ function DepositPage() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+        <SectionCard title="Payment gateway architecture">
+          <div className="rounded-2xl border border-border/70 bg-secondary/70 p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-navy">
+              <CreditCard className="size-4 text-royal" /> Payment provider abstraction
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              The UI is already wired for future gateway integration. Configure an API key later and the same flow will accept it without changing the screens.
+            </p>
+            <div className="mt-4 space-y-2">
+              {providers.map((provider) => (
+                <div key={provider.key} className="flex items-center justify-between rounded-xl border border-border/70 bg-card px-3 py-2 text-sm">
+                  <div>
+                    <p className="font-medium text-navy">{provider.label}</p>
+                    <p className="text-xs text-muted-foreground">{provider.description}</p>
+                  </div>
+                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${provider.enabled ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                    {provider.enabled ? "active" : "pending"}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 rounded-xl border border-royal/20 bg-royal-soft p-3 text-sm text-navy">
+              <div className="flex items-center gap-2 font-semibold">
+                <ShieldCheck className="size-4" /> Payment gateway not yet configured.
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">Only the provider architecture is active right now. Once credentials are added, the same flow can be switched on immediately.</p>
+            </div>
+          </div>
+          <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-navy">
+              <Bitcoin className="size-4 text-royal" /> Wallet funding (crypto)
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">The wallet funding experience remains available and is ready to work with a live provider once you add credentials.</p>
+          </div>
+        </SectionCard>
+
         <SectionCard title="Choose a cryptocurrency">
           {methods.isLoading ? (
             <RowsSkeleton rows={3} />
@@ -160,7 +198,7 @@ function DepositPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="Deposit history" bodyClassName="p-0">
+        <SectionCard title="Payment history" bodyClassName="p-0">
           {deposits.isLoading ? (
             <div className="p-5">
               <RowsSkeleton />

@@ -42,7 +42,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 const quickActions = [
-  { to: "/deposit", label: "Deposit", icon: ArrowDownToLine },
+  { to: "/deposit", label: "Payments", icon: ArrowDownToLine },
   { to: "/invest", label: "Invest", icon: TrendingUp },
   { to: "/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
   { to: "/referrals", label: "Refer", icon: Users },
@@ -77,7 +77,7 @@ function Dashboard() {
         subtitle="A live view of your wealth with TrueNorth Financial."
         action={
           <Link to="/deposit" className="hidden rounded-xl bg-royal px-4 py-2.5 text-sm font-semibold text-white sm:inline-flex">
-            Fund account
+            Go to payments
           </Link>
         }
       />
@@ -104,48 +104,47 @@ function Dashboard() {
           loading={wallet.isLoading}
         />
         <StatCard
-          label="Total deposited"
-          value={formatCurrency(w?.total_deposited)}
-          icon={ArrowDownToLine}
-          loading={wallet.isLoading}
+          label="Total active investments"
+          value={String(activeInvestments.length)}
+          icon={Layers}
+          loading={investments.isLoading}
         />
         <StatCard
-          label="Total invested"
+          label="Total completed investments"
+          value={String((investments.data ?? []).filter((item) => item.status === "completed").length)}
+          icon={TrendingUp}
+          tone="success"
+          loading={investments.isLoading}
+        />
+        <StatCard
+          label="Total invested amount"
           value={formatCurrency(investedNow)}
           icon={PiggyBank}
           loading={investments.isLoading}
         />
         <StatCard
-          label="Available balance"
+          label="Total earnings"
+          value={formatCurrency(w?.total_profit)}
+          icon={TrendingUp}
+          loading={wallet.isLoading}
+        />
+        <StatCard
+          label="Wallet balance"
           value={formatCurrency(w?.available_balance)}
           icon={WalletIcon}
           hint={`+ ${formatCurrency(w?.welcome_bonus)} welcome bonus (locked)`}
           loading={wallet.isLoading}
         />
         <StatCard
-          label="Total profit"
-          value={formatCurrency(w?.total_profit)}
-          icon={TrendingUp}
-          tone="success"
+          label="Available balance"
+          value={formatCurrency(w?.available_balance)}
+          icon={ArrowDownToLine}
           loading={wallet.isLoading}
         />
         <StatCard
           label="Referral earnings"
           value={formatCurrency(w?.referral_earnings)}
           icon={Gift}
-          loading={wallet.isLoading}
-        />
-        <StatCard
-          label="Active plans"
-          value={String(activeInvestments.length)}
-          icon={Layers}
-          loading={investments.isLoading}
-        />
-        <StatCard
-          label="Welcome bonus"
-          value={formatCurrency(w?.welcome_bonus)}
-          icon={Gift}
-          hint="Promotional · not withdrawable"
           loading={wallet.isLoading}
         />
       </div>
@@ -214,6 +213,29 @@ function Dashboard() {
       </SectionCard>
 
       {/* Lists */}
+      <SectionCard title="Recent investment activity" description="Latest portfolio actions">
+        {investments.isLoading ? (
+          <RowsSkeleton rows={3} />
+        ) : (investments.data ?? []).length ? (
+          <ul className="space-y-2">
+            {(investments.data ?? []).slice(0, 4).map((inv) => (
+              <li key={inv.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-secondary/60 px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-medium text-navy">{inv.plan_name}</p>
+                  <p className="text-xs text-muted-foreground">{formatDateTime(inv.created_at)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-navy">{formatCurrency(inv.amount, 0)}</p>
+                  <StatusPill status={inv.status} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState icon={Layers} title="No investments yet" description="Your recent purchase activity will appear here." />
+        )}
+      </SectionCard>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <SectionCard
           title="Recent transactions"
