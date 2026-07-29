@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Users,
@@ -14,6 +14,14 @@ import {
   Power,
   ShieldAlert,
   BarChart3,
+  Search,
+  Wallet as WalletIcon,
+  ScrollText,
+  Send,
+  Gift,
+  Ban,
+  CheckCircle2,
+  PauseCircle,
 } from "lucide-react";
 import {
   useAdminUsers,
@@ -21,9 +29,11 @@ import {
   useAdminDeposits,
   useAdminWithdrawals,
   useAdminTransactions,
+  useAdminInvestments,
   useAdminReferrals,
   useAdminAnnouncements,
   useAdminSettings,
+  useAuditLogs,
   useSavePlan,
   useDeletePlan,
   useTogglePlan,
@@ -31,8 +41,24 @@ import {
   useReviewWithdrawal,
   useSaveAnnouncement,
   useSaveSetting,
-} from "@/lib/admin-api";
-import { useIsAdmin, usePlans, formatCurrency, formatDateTime, type Plan } from "@/lib/api";
+  useSetUserStatus,
+  useUpdateUserDetails,
+  useDeleteUser,
+  useAdjustWallet,
+  useSetReferralStatus,
+  useRewardReferral,
+  useBroadcastNotification,
+  type UserStatus,
+  type WalletField,
+} from "@/lib/api/admin";
+import {
+  useIsAdmin,
+  usePlans,
+  formatCurrency,
+  formatDateTime,
+  type Plan,
+  type Profile,
+} from "@/lib/api";
 import {
   PageHeader,
   SectionCard,
@@ -60,11 +86,15 @@ export const Route = createFileRoute("/_authenticated/admin")({
 const TABS = [
   "Overview",
   "Users",
+  "Wallets",
   "Deposits",
   "Withdrawals",
   "Plans",
   "Transactions",
+  "Referrals",
+  "Notifications",
   "Announcements",
+  "Audit log",
   "Settings",
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -109,109 +139,354 @@ function AdminPage() {
 
       {tab === "Overview" && <Overview />}
       {tab === "Users" && <UsersTab />}
+      {tab === "Wallets" && <WalletsTab />}
       {tab === "Deposits" && <DepositsTab />}
       {tab === "Withdrawals" && <WithdrawalsTab />}
       {tab === "Plans" && <PlansTab />}
       {tab === "Transactions" && <TransactionsTab />}
+      {tab === "Referrals" && <ReferralsTab />}
+      {tab === "Notifications" && <NotificationsTab />}
       {tab === "Announcements" && <AnnouncementsTab />}
+      {tab === "Audit log" && <AuditTab />}
       {tab === "Settings" && <SettingsTab />}
     </div>
   );
 }
+
+/* ---------------- Overview / reports ---------------- */
 
 function Overview() {
   const users = useAdminUsers();
   const wallets = useAdminWallets();
   const deposits = useAdminDeposits();
   const withdrawals = useAdminWithdrawals();
+  const investments = useAdminInvestments();
   const referrals = useAdminReferrals();
   const plans = usePlans(false);
 
-  const totalDeposited = (wallets.data ?? []).reduce((s, w) => s + Number(w.total_deposited), 0);
-  const totalBalances = (wallets.data ?? []).reduce((s, w) => s + Number(w.available_balance), 0);
+  const w = wallets.data ?? [];
+  const totalDeposited = w.reduce((s, x) => s + Number(x.total_deposited), 0);
+  const totalBalances = w.reduce((s, x) => s + Number(x.available_balance), 0);
+  const totalBonus = w.reduce((s, x) => s + Number(x.welcome_bonus), 0);
+  const totalInvested = (investments.data ?? []).reduce((s, i) => s + Number(i.amount), 0);
+  const paidWithdrawals = (withdrawals.data ?? [])
+    .filter((x) => x.status === "approved")
+    .reduce((s, x) => s + Number(x.amount), 0);
   const pendingDeposits = (deposits.data ?? []).filter((d) => d.status === "pending").length;
-  const pendingWithdrawals = (withdrawals.data ?? []).filter((w) => w.status === "pending").length;
+  const pendingWithdrawals = (withdrawals.data ?? []).filter((x) => x.status === "pending").length;
+  const activeUsers = (users.data ?? []).filter((u) => (u.status ?? "active") === "active").length;
+  const revenue = totalDeposited - paidWithdrawals;
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <StatCard label="Members" value={String(users.data?.length ?? 0)} icon={Users} tone="primary" />
-      <StatCard label="Total deposited" value={formatCurrency(totalDeposited)} icon={ArrowDownToLine} />
-      <StatCard label="Held balances" value={formatCurrency(totalBalances)} icon={BarChart3} />
-      <StatCard label="Referrals" value={String(referrals.data?.length ?? 0)} icon={Users} />
-      <StatCard label="Pending deposits" value={String(pendingDeposits)} icon={ArrowDownToLine} />
-      <StatCard label="Pending withdrawals" value={String(pendingWithdrawals)} icon={ArrowUpFromLine} />
-      <StatCard label="Investment plans" value={String(plans.data?.length ?? 0)} icon={Layers} />
-      <StatCard
-        label="Active plans"
-        value={String((plans.data ?? []).filter((p) => p.is_active).length)}
-        icon={Layers}
-        tone="success"
-      />
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label="Total users" value={String(users.data?.length ?? 0)} icon={Users} tone="primary" />
+        <StatCard label="Active users" value={String(activeUsers)} icon={CheckCircle2} tone="success" />
+        <StatCard label="Total deposits" value={formatCurrency(totalDeposited)} icon={ArrowDownToLine} />
+        <StatCard label="Total withdrawals" value={formatCurrency(paidWithdrawals)} icon={ArrowUpFromLine} />
+        <StatCard label="Total invested" value={formatCurrency(totalInvested)} icon={Layers} />
+        <StatCard label="Platform revenue" value={formatCurrency(revenue)} icon={BarChart3} tone="primary" />
+        <StatCard label="Held balances" value={formatCurrency(totalBalances)} icon={WalletIcon} />
+        <StatCard label="Welcome bonuses" value={formatCurrency(totalBonus)} icon={Gift} />
+        <StatCard label="Pending deposits" value={String(pendingDeposits)} icon={ArrowDownToLine} />
+        <StatCard label="Pending withdrawals" value={String(pendingWithdrawals)} icon={ArrowUpFromLine} />
+        <StatCard label="Referrals" value={String(referrals.data?.length ?? 0)} icon={Users} />
+        <StatCard
+          label="Active plans"
+          value={`${(plans.data ?? []).filter((p) => p.is_active).length}/${plans.data?.length ?? 0}`}
+          icon={Layers}
+          tone="success"
+        />
+      </div>
     </div>
   );
 }
 
+/* ---------------- Users ---------------- */
+
 function UsersTab() {
   const users = useAdminUsers();
   const wallets = useAdminWallets();
+  const setStatus = useSetUserStatus();
+  const updateUser = useUpdateUserDetails();
+  const deleteUser = useDeleteUser();
+  const [query, setQuery] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
+
   const walletFor = (uid: string) => (wallets.data ?? []).find((w) => w.user_id === uid);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const list = users.data ?? [];
+    if (!q) return list;
+    return list.filter(
+      (u) => (u.full_name ?? "").toLowerCase().includes(q) || (u.email ?? "").toLowerCase().includes(q),
+    );
+  }, [users.data, query]);
 
   return (
-    <SectionCard title="Users & wallets" bodyClassName="p-0">
+    <SectionCard title="User management" description="Search, edit, activate, ban or remove members." bodyClassName="p-0">
+      <div className="border-b border-border/60 p-4">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name or email"
+            className={`${inputClass} pl-9`}
+          />
+        </div>
+      </div>
+
       {users.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
         </div>
-      ) : users.data?.length ? (
+      ) : filtered.length ? (
         <ul>
-          {users.data.map((u) => {
+          {filtered.map((u) => {
             const w = walletFor(u.user_id);
+            const status = (u.status ?? "active") as UserStatus;
+            const open = openId === u.id;
             return (
-              <li key={u.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-navy">{u.full_name ?? "Investor"}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {u.email} · ref {u.referral_code}
-                  </p>
+              <li key={u.id} className="border-b border-border/60 px-5 py-4 last:border-0">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <button className="min-w-0 text-left" onClick={() => setOpenId(open ? null : u.id)}>
+                    <p className="truncate font-medium text-navy">{u.full_name ?? "Investor"}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {u.email} · ref {u.referral_code}
+                    </p>
+                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusPill status={status} />
+                    <span className="text-xs text-muted-foreground">
+                      {formatCurrency(w?.available_balance)} · bonus {formatCurrency(w?.welcome_bonus, 0)}
+                    </span>
+                    <button onClick={() => setOpenId(open ? null : u.id)} className={btnGhost}>
+                      {open ? "Close" : "Manage"}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-4 text-right text-xs">
-                  <div>
-                    <p className="text-muted-foreground">Balance</p>
-                    <p className="font-semibold text-navy">{formatCurrency(w?.available_balance)}</p>
+
+                {open && (
+                  <div className="mt-4 grid gap-4 rounded-2xl bg-muted/40 p-4 lg:grid-cols-2">
+                    <UserDetailsForm
+                      user={u}
+                      onSave={(patch) =>
+                        updateUser.mutate({ user: u, patch }, { onSuccess: () => toast.success("Profile updated") })
+                      }
+                    />
+                    <WalletAdjustForm user={u} />
+                    <div className="lg:col-span-2 flex flex-wrap gap-2">
+                      {(["active", "suspended", "banned"] as UserStatus[]).map((s) => (
+                        <button
+                          key={s}
+                          disabled={status === s}
+                          onClick={() =>
+                            setStatus.mutate({ user: u, status: s }, { onSuccess: () => toast.success(`Account ${s}`) })
+                          }
+                          className={`${btnGhost} disabled:opacity-40`}
+                        >
+                          {s === "active" ? (
+                            <CheckCircle2 className="size-4" />
+                          ) : s === "suspended" ? (
+                            <PauseCircle className="size-4" />
+                          ) : (
+                            <Ban className="size-4" />
+                          )}
+                          {s === "active" ? "Activate" : s === "suspended" ? "Suspend" : "Ban"}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => {
+                          if (!window.confirm(`Permanently delete ${u.email}? This cannot be undone.`)) return;
+                          deleteUser.mutate(u, {
+                            onSuccess: () => toast.success("Account deleted"),
+                            onError: (e) => toast.error(e instanceof Error ? e.message : "Delete failed"),
+                          });
+                        }}
+                        className="inline-flex items-center gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive"
+                      >
+                        <Trash2 className="size-4" /> Delete account
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Deposited</p>
-                    <p className="font-semibold text-navy">{formatCurrency(w?.total_deposited)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Bonus</p>
-                    <p className="font-semibold text-navy">{formatCurrency(w?.welcome_bonus)}</p>
-                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <EmptyState icon={Users} title="No members found" description="Try a different search term." />
+      )}
+    </SectionCard>
+  );
+}
+
+function UserDetailsForm({
+  user,
+  onSave,
+}: {
+  user: Profile;
+  onSave: (patch: Partial<Pick<Profile, "full_name" | "phone" | "country" | "email">>) => void;
+}) {
+  const [form, setForm] = useState({
+    full_name: user.full_name ?? "",
+    email: user.email ?? "",
+    phone: user.phone ?? "",
+    country: user.country ?? "",
+  });
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Profile details</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Field label="Full name">
+          <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className={inputClass} />
+        </Field>
+        <Field label="Email">
+          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputClass} />
+        </Field>
+        <Field label="Phone">
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inputClass} />
+        </Field>
+        <Field label="Country">
+          <input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className={inputClass} />
+        </Field>
+      </div>
+      <button onClick={() => onSave(form)} className={btnGhost}>
+        Save details
+      </button>
+    </div>
+  );
+}
+
+function WalletAdjustForm({ user }: { user: Profile }) {
+  const adjust = useAdjustWallet();
+  const [field, setField] = useState<WalletField>("available_balance");
+  const [direction, setDirection] = useState<"credit" | "debit">("credit");
+  const [amount, setAmount] = useState(0);
+  const [reason, setReason] = useState("");
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Manual wallet adjustment</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Field label="Fund">
+          <select value={field} onChange={(e) => setField(e.target.value as WalletField)} className={inputClass}>
+            <option value="available_balance">Available balance</option>
+            <option value="welcome_bonus">Welcome bonus</option>
+          </select>
+        </Field>
+        <Field label="Action">
+          <select
+            value={direction}
+            onChange={(e) => setDirection(e.target.value as "credit" | "debit")}
+            className={inputClass}
+          >
+            <option value="credit">Credit</option>
+            <option value="debit">Debit</option>
+          </select>
+        </Field>
+        <Field label="Amount (USD)">
+          <input type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} className={inputClass} />
+        </Field>
+        <Field label="Reason" hint="Recorded in the audit log">
+          <input value={reason} onChange={(e) => setReason(e.target.value)} className={inputClass} />
+        </Field>
+      </div>
+      <button
+        disabled={adjust.isPending}
+        onClick={() =>
+          adjust.mutate(
+            { user, field, direction, amount, reason },
+            {
+              onSuccess: () => {
+                toast.success("Wallet adjusted");
+                setAmount(0);
+                setReason("");
+              },
+              onError: (e) => toast.error(e instanceof Error ? e.message : "Adjustment failed"),
+            },
+          )
+        }
+        className={btnPrimary}
+      >
+        <WalletIcon className="size-4" /> Apply adjustment
+      </button>
+    </div>
+  );
+}
+
+/* ---------------- Wallets ---------------- */
+
+function WalletsTab() {
+  const users = useAdminUsers();
+  const wallets = useAdminWallets();
+  const nameFor = (uid: string) => (users.data ?? []).find((u) => u.user_id === uid);
+
+  return (
+    <SectionCard title="Wallets" description="Every member wallet with deposited funds and promotional bonus." bodyClassName="p-0">
+      {wallets.isLoading ? (
+        <div className="p-5">
+          <RowsSkeleton />
+        </div>
+      ) : wallets.data?.length ? (
+        <ul>
+          {wallets.data.map((w) => {
+            const u = nameFor(w.user_id);
+            return (
+              <li key={w.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-navy">{u?.full_name ?? "Investor"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{u?.email}</p>
+                </div>
+                <div className="flex flex-wrap gap-4 text-right text-xs">
+                  <Metric label="Balance" value={formatCurrency(w.available_balance)} />
+                  <Metric label="Bonus" value={formatCurrency(w.welcome_bonus)} />
+                  <Metric label="Deposited" value={formatCurrency(w.total_deposited)} />
+                  <Metric label="Invested" value={formatCurrency(w.total_invested)} />
+                  <Metric label="Profit" value={formatCurrency(w.total_profit)} />
+                  <Metric label="Referrals" value={formatCurrency(w.referral_earnings)} />
                 </div>
               </li>
             );
           })}
         </ul>
       ) : (
-        <EmptyState icon={Users} title="No members yet" />
+        <EmptyState icon={WalletIcon} title="No wallets yet" />
       )}
     </SectionCard>
   );
 }
 
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-muted-foreground">{label}</p>
+      <p className="font-semibold text-navy">{value}</p>
+    </div>
+  );
+}
+
+/* ---------------- Deposits ---------------- */
+
 function DepositsTab() {
   const deposits = useAdminDeposits();
   const review = useReviewDeposit();
+  const [filter, setFilter] = useState("all");
+
+  const rows = (deposits.data ?? []).filter((d) => filter === "all" || d.status === filter);
 
   return (
     <SectionCard title="Deposits" description="Approving a deposit credits the member's wallet." bodyClassName="p-0">
+      <FilterBar value={filter} onChange={setFilter} options={["all", "pending", "approved", "rejected"]} />
       {deposits.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
         </div>
-      ) : deposits.data?.length ? (
+      ) : rows.length ? (
         <ul>
-          {deposits.data.map((d) => (
+          {rows.map((d) => (
             <li key={d.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
               <div className="min-w-0">
                 <p className="font-medium text-navy">
@@ -254,19 +529,50 @@ function DepositsTab() {
   );
 }
 
+function FilterBar({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+}) {
+  return (
+    <div className="flex gap-2 overflow-x-auto border-b border-border/60 p-4">
+      {options.map((o) => (
+        <button
+          key={o}
+          onClick={() => onChange(o)}
+          className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition ${
+            value === o ? "bg-royal text-white" : "border border-border text-muted-foreground"
+          }`}
+        >
+          {o}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ---------------- Withdrawals ---------------- */
+
 function WithdrawalsTab() {
   const withdrawals = useAdminWithdrawals();
   const review = useReviewWithdrawal();
+  const [filter, setFilter] = useState("all");
+  const rows = (withdrawals.data ?? []).filter((w) => filter === "all" || w.status === filter);
 
   return (
     <SectionCard title="Withdrawals" bodyClassName="p-0">
+      <FilterBar value={filter} onChange={setFilter} options={["all", "pending", "approved", "rejected"]} />
       {withdrawals.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
         </div>
-      ) : withdrawals.data?.length ? (
+      ) : rows.length ? (
         <ul>
-          {withdrawals.data.map((w) => (
+          {rows.map((w) => (
             <li key={w.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
               <div className="min-w-0">
                 <p className="font-medium text-navy">
@@ -306,6 +612,8 @@ function WithdrawalsTab() {
     </SectionCard>
   );
 }
+
+/* ---------------- Plans ---------------- */
 
 const emptyPlan = {
   name: "",
@@ -511,21 +819,47 @@ function PlansTab() {
   );
 }
 
+/* ---------------- Transactions ---------------- */
+
 function TransactionsTab() {
   const transactions = useAdminTransactions();
+  const users = useAdminUsers();
+  const [status, setStatus] = useState("all");
+  const [query, setQuery] = useState("");
+
+  const emailFor = (uid: string) => (users.data ?? []).find((u) => u.user_id === uid)?.email ?? "";
+
+  const rows = (transactions.data ?? []).filter((t) => {
+    if (status !== "all" && t.status !== status) return false;
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return emailFor(t.user_id).toLowerCase().includes(q) || t.type.toLowerCase().includes(q);
+  });
+
   return (
     <SectionCard title="Platform transactions" bodyClassName="p-0">
+      <FilterBar value={status} onChange={setStatus} options={["all", "pending", "completed", "failed"]} />
+      <div className="border-b border-border/60 p-4">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Filter by member email or type"
+          className={inputClass}
+        />
+      </div>
       {transactions.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
         </div>
-      ) : transactions.data?.length ? (
+      ) : rows.length ? (
         <ul>
-          {transactions.data.map((t) => (
+          {rows.map((t) => (
             <li key={t.id} className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-navy">{t.type}</p>
-                <p className="truncate text-xs text-muted-foreground">{formatDateTime(t.created_at)}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {emailFor(t.user_id)} · {formatDateTime(t.created_at)}
+                </p>
               </div>
               <div className="text-right">
                 <p className={`text-sm font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}>
@@ -542,6 +876,157 @@ function TransactionsTab() {
     </SectionCard>
   );
 }
+
+/* ---------------- Referrals ---------------- */
+
+function ReferralsTab() {
+  const referrals = useAdminReferrals();
+  const users = useAdminUsers();
+  const setStatus = useSetReferralStatus();
+  const reward = useRewardReferral();
+  const [amounts, setAmounts] = useState<Record<string, number>>({});
+
+  const emailFor = (uid: string) => (users.data ?? []).find((u) => u.user_id === uid)?.email ?? "Member";
+
+  return (
+    <SectionCard title="Referral programme" description="Reward or suspend referral relationships." bodyClassName="p-0">
+      {referrals.isLoading ? (
+        <div className="p-5">
+          <RowsSkeleton />
+        </div>
+      ) : referrals.data?.length ? (
+        <ul>
+          {referrals.data.map((r) => {
+            const status = (r.status ?? "active") as "active" | "suspended";
+            return (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-navy">{emailFor(r.referrer_id)}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    referred {emailFor(r.referred_id)} · earned {formatCurrency(r.earnings)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusPill status={status} />
+                  <input
+                    type="number"
+                    value={amounts[r.id] ?? 0}
+                    onChange={(e) => setAmounts({ ...amounts, [r.id]: Number(e.target.value) })}
+                    className={`${inputClass} w-28`}
+                  />
+                  <button
+                    onClick={() =>
+                      reward.mutate(
+                        { referral: r, amount: amounts[r.id] ?? 0 },
+                        {
+                          onSuccess: () => {
+                            toast.success("Referral rewarded");
+                            setAmounts({ ...amounts, [r.id]: 0 });
+                          },
+                          onError: (e) => toast.error(e instanceof Error ? e.message : "Reward failed"),
+                        },
+                      )
+                    }
+                    className={btnGhost}
+                  >
+                    <Gift className="size-4" /> Reward
+                  </button>
+                  <button
+                    onClick={() =>
+                      setStatus.mutate(
+                        { referral: r, status: status === "active" ? "suspended" : "active" },
+                        { onSuccess: () => toast.success("Referral updated") },
+                      )
+                    }
+                    className={btnGhost}
+                  >
+                    {status === "active" ? "Suspend" : "Reactivate"}
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <EmptyState icon={Users} title="No referrals yet" />
+      )}
+    </SectionCard>
+  );
+}
+
+/* ---------------- Notifications ---------------- */
+
+function NotificationsTab() {
+  const users = useAdminUsers();
+  const broadcast = useBroadcastNotification();
+  const [form, setForm] = useState({ title: "", body: "", kind: "info" });
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const toggle = (uid: string) =>
+    setSelected((prev) => (prev.includes(uid) ? prev.filter((x) => x !== uid) : [...prev, uid]));
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <SectionCard title="Send notification" description="Leave recipients empty to notify every member.">
+        <Field label="Title">
+          <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} />
+        </Field>
+        <Field label="Message">
+          <textarea rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} className={inputClass} />
+        </Field>
+        <Field label="Type">
+          <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })} className={inputClass}>
+            <option value="info">Information</option>
+            <option value="success">Success</option>
+            <option value="warning">Maintenance / warning</option>
+            <option value="error">Critical</option>
+          </select>
+        </Field>
+        <button
+          disabled={broadcast.isPending}
+          onClick={() =>
+            broadcast.mutate(
+              { ...form, userIds: selected },
+              {
+                onSuccess: (count) => {
+                  toast.success(`Sent to ${count} member${count === 1 ? "" : "s"}`);
+                  setForm({ title: "", body: "", kind: "info" });
+                  setSelected([]);
+                },
+                onError: (e) => toast.error(e instanceof Error ? e.message : "Send failed"),
+              },
+            )
+          }
+          className={`${btnPrimary} mt-4`}
+        >
+          <Send className="size-4" /> {selected.length ? `Send to ${selected.length} selected` : "Send to all members"}
+        </button>
+      </SectionCard>
+
+      <SectionCard title="Recipients" description="Optional — pick specific members." bodyClassName="p-0">
+        {users.isLoading ? (
+          <div className="p-5">
+            <RowsSkeleton />
+          </div>
+        ) : (
+          <ul className="max-h-[420px] overflow-y-auto">
+            {(users.data ?? []).map((u) => (
+              <li key={u.id} className="flex items-center gap-3 border-b border-border/60 px-5 py-3 last:border-0">
+                <input type="checkbox" checked={selected.includes(u.user_id)} onChange={() => toggle(u.user_id)} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-navy">{u.full_name ?? "Investor"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+    </div>
+  );
+}
+
+/* ---------------- Announcements ---------------- */
 
 function AnnouncementsTab() {
   const announcements = useAdminAnnouncements();
@@ -589,6 +1074,43 @@ function AnnouncementsTab() {
     </div>
   );
 }
+
+/* ---------------- Audit log ---------------- */
+
+function AuditTab() {
+  const logs = useAuditLogs();
+  return (
+    <SectionCard title="Administrator audit log" description="Every manual action, who performed it and why." bodyClassName="p-0">
+      {logs.isLoading ? (
+        <div className="p-5">
+          <RowsSkeleton />
+        </div>
+      ) : logs.data?.length ? (
+        <ul>
+          {logs.data.map((l) => (
+            <li key={l.id} className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-navy">{l.action}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {l.admin_email ?? "admin"} → {l.target_email ?? l.target_user_id ?? "platform"}
+                  {l.reason ? ` · ${l.reason}` : ""}
+                </p>
+              </div>
+              <div className="text-right">
+                {l.amount != null && <p className="text-sm font-semibold text-navy">{formatCurrency(l.amount)}</p>}
+                <p className="text-[11px] text-muted-foreground">{formatDateTime(l.created_at)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState icon={ScrollText} title="No admin actions recorded yet" />
+      )}
+    </SectionCard>
+  );
+}
+
+/* ---------------- Settings ---------------- */
 
 function SettingsTab() {
   const settings = useAdminSettings();
