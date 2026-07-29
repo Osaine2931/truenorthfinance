@@ -38,6 +38,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_email: string | null
+          admin_id: string
+          amount: number | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          reason: string | null
+          target_email: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_email?: string | null
+          admin_id: string
+          amount?: number | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_email?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_email?: string | null
+          admin_id?: string
+          amount?: number | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_email?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           body: string | null
@@ -288,6 +327,7 @@ export type Database = {
           phone: string | null
           referral_code: string
           referred_by: string | null
+          status: string
           updated_at: string
           user_id: string
         }
@@ -301,6 +341,7 @@ export type Database = {
           phone?: string | null
           referral_code: string
           referred_by?: string | null
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -314,6 +355,7 @@ export type Database = {
           phone?: string | null
           referral_code?: string
           referred_by?: string | null
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -326,6 +368,7 @@ export type Database = {
           id: string
           referred_id: string
           referrer_id: string
+          status: string
         }
         Insert: {
           created_at?: string
@@ -333,6 +376,7 @@ export type Database = {
           id?: string
           referred_id: string
           referrer_id: string
+          status?: string
         }
         Update: {
           created_at?: string
@@ -340,6 +384,7 @@ export type Database = {
           id?: string
           referred_id?: string
           referrer_id?: string
+          status?: string
         }
         Relationships: []
       }
