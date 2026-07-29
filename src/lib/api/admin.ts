@@ -232,7 +232,7 @@ export function useAdjustWallet() {
 
       const delta = direction === "credit" ? amount : -amount;
       const next = Math.max(Number(wallet[field]) + delta, 0);
-      const patch: Record<string, number | boolean> = { [field]: next };
+      const patch: Partial<Wallet> = { [field]: next };
       if (field === "available_balance" && direction === "credit") {
         patch.total_deposited = Number(wallet.total_deposited) + amount;
         patch.has_deposited = true;
