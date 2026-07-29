@@ -1,5 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { supabase, currentUserId, unwrap, useInvalidate, type Profile } from "./client";
+import { supabase } from "@/integrations/supabase/client";
+import { currentUserId } from "./auth";
+import { unwrap, useInvalidate, type Profile } from "./client";
 
 export function useProfile() {
   return useQuery({

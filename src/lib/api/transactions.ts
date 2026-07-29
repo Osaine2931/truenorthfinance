@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase, unwrap, type Transaction, type Activity, type Investment } from "./client";
+import { supabase } from "@/integrations/supabase/client";
+import { unwrap, type Transaction, type Activity, type Investment } from "./client";
 
 export function useTransactions(limit?: number) {
   return useQuery({

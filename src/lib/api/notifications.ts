@@ -1,5 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { supabase, currentUserId, unwrap, useInvalidate, type Notification } from "./client";
+import { supabase } from "@/integrations/supabase/client";
+import { currentUserId } from "./auth";
+import { unwrap, useInvalidate, type Notification } from "./client";
 
 export function useNotifications(limit?: number) {
   return useQuery({
