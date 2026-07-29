@@ -151,7 +151,7 @@ function Dashboard() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {quickActions.map((a) => (
           <Link
             key={a.to}
@@ -196,7 +196,11 @@ function Dashboard() {
       </div>
 
       <SectionCard title="Investment performance" description="Capital vs. profit per active plan">
-        {performance.length ? (
+        {investments.isLoading ? (
+          <div className="h-64">
+            <RowsSkeleton />
+          </div>
+        ) : performance.length ? (
           <div className="h-64">
             <PerformanceChart data={performance} />
           </div>
@@ -266,7 +270,11 @@ function Dashboard() {
 
         <div className="space-y-4">
           <SectionCard title="Notifications" bodyClassName="p-0">
-            {notifications.data?.length ? (
+            {notifications.isLoading ? (
+              <div className="p-5">
+                <RowsSkeleton />
+              </div>
+            ) : notifications.data?.length ? (
               <ul>
                 {notifications.data.map((n) => (
                   <li key={n.id} className="border-b border-border/60 px-5 py-3.5 last:border-0">
@@ -286,7 +294,11 @@ function Dashboard() {
           </SectionCard>
 
           <SectionCard title="Recent activity" bodyClassName="p-0">
-            {activities.data?.length ? (
+            {activities.isLoading ? (
+              <div className="p-5">
+                <RowsSkeleton />
+              </div>
+            ) : activities.data?.length ? (
               <ul>
                 {activities.data.map((a) => (
                   <li key={a.id} className="flex items-start gap-2 border-b border-border/60 px-5 py-3 last:border-0">

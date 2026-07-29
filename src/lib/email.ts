@@ -1,3 +1,19 @@
+import {
+  ConsoleEmailProvider,
+  EmailService,
+  defaultEmailServiceConfig,
+  renderWelcomeTemplate,
+  renderLoginTemplate,
+  renderPasswordResetTemplate,
+  renderVerificationTemplate,
+  renderSecurityAlertTemplate,
+  renderAdminWalletAdjustmentTemplate,
+  renderDepositApprovedTemplate,
+  renderWithdrawalApprovedTemplate,
+  type EmailMessage,
+  type EmailTemplateKey,
+} from "./email/index";
+
 type EmailPayload = {
   to: string;
   subject: string;
@@ -7,6 +23,45 @@ type EmailPayload = {
 
 function getEnvValue(name: string) {
   return (typeof import.meta !== "undefined" && import.meta.env ? import.meta.env[name] : undefined) ?? undefined;
+}
+
+function createTextFromHtml(html: string) {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+const emailService = new EmailService(new ConsoleEmailProvider(), defaultEmailServiceConfig);
+
+export function getEmailService() {
+  return emailService;
+}
+
+export async function sendEmailMessage(message: EmailMessage) {
+  return emailService.send(message);
+}
+
+export async function sendTemplateEmail({
+  to,
+  template,
+  subject,
+  html,
+  text,
+  metadata,
+}: {
+  to: string;
+  template: EmailTemplateKey;
+  subject: string;
+  html: string;
+  text?: string;
+  metadata?: Record<string, unknown>;
+}) {
+  return emailService.send({
+    to,
+    subject,
+    html,
+    text: text ?? createTextFromHtml(html),
+    template,
+    metadata,
+  });
 }
 
 export async function sendHtmlEmail(payload: EmailPayload) {
@@ -26,7 +81,7 @@ export async function sendHtmlEmail(payload: EmailPayload) {
         to: [payload.to],
         subject: payload.subject,
         html: payload.html,
-        text: payload.text ?? payload.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+        text: payload.text ?? createTextFromHtml(payload.html),
       }),
     });
 
@@ -49,8 +104,13 @@ export async function sendHtmlEmail(payload: EmailPayload) {
     return { ok: response.ok };
   }
 
-  console.info("[email] skipped", payload.subject, payload.to);
-  return { ok: true, skipped: true };
+  return sendTemplateEmail({
+    to: payload.to,
+    template: "welcome",
+    subject: payload.subject,
+    html: payload.html,
+    text: payload.text,
+  });
 }
 
 export async function sendWelcomeEmail({
@@ -64,33 +124,15 @@ export async function sendWelcomeEmail({
 }) {
   const prettyDate = createdAt ? new Date(createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "just now";
   const displayName = fullName?.trim() || "investor";
-  const html = `
-    <div style="font-family:Inter,Arial,sans-serif;background:#f5f8ff;padding:24px;color:#0f172a;">
-      <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #dbeafe;">
-        <div style="background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 100%);padding:24px 32px;color:white;">
-          <p style="margin:0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.8;">TRUENORTH FINANCIAL</p>
-          <h1 style="margin:8px 0 0;font-size:28px;">Welcome aboard, ${displayName}</h1>
-        </div>
-        <div style="padding:32px;">
-          <p style="margin:0 0 12px;font-size:16px;">Your TrueNorth Financial account is now active.</p>
-          <ul style="padding-left:20px;line-height:1.7;color:#334155;">
-            <li><strong>User:</strong> ${displayName}</li>
-            <li><strong>Registered:</strong> ${prettyDate}</li>
-            <li><strong>Security:</strong> Keep this email address secure and never share your password.</li>
-          </ul>
-          <p style="margin-top:24px;padding:16px 20px;background:#f8fafc;border-left:4px solid #3b82f6;border-radius:12px;color:#334155;">
-            A $1,000 welcome bonus has been credited to your wallet and is ready to support your first deposit.
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
+  const html = renderWelcomeTemplate({ name: displayName, date: prettyDate });
 
-  return sendHtmlEmail({
+  return sendTemplateEmail({
     to: email,
+    template: "welcome",
     subject: "Welcome to TrueNorth Financial",
     html,
     text: `Welcome to TrueNorth Financial. Your account was created on ${prettyDate}.`,
+    metadata: { fullName: displayName, createdAt: prettyDate },
   });
 }
 
@@ -109,33 +151,59 @@ export async function sendLoginAlertEmail({
 }) {
   const displayName = fullName?.trim() || "investor";
   const prettyDate = loginAt ? new Date(loginAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "just now";
-  const html = `
-    <div style="font-family:Inter,Arial,sans-serif;background:#f8fafc;padding:24px;color:#0f172a;">
-      <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #e2e8f0;">
-        <div style="background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 100%);padding:24px 32px;color:white;">
-          <p style="margin:0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.8;">Security Alert</p>
-          <h1 style="margin:8px 0 0;font-size:24px;">New sign-in detected</h1>
-        </div>
-        <div style="padding:32px;">
-          <p style="margin:0 0 12px;">Hello ${displayName},</p>
-          <p style="margin:0 0 16px;line-height:1.7;color:#334155;">A successful sign-in was recorded for your TrueNorth Financial account on ${prettyDate}.</p>
-          <ul style="padding-left:20px;line-height:1.7;color:#334155;">
-            <li><strong>Date & Time:</strong> ${prettyDate}</li>
-            <li><strong>Browser:</strong> ${userAgent || "Unknown browser"}</li>
-            <li><strong>IP Address:</strong> ${ipAddress || "Unavailable"}</li>
-          </ul>
-          <p style="margin-top:20px;padding:16px 20px;background:#fef2f2;border-left:4px solid #ef4444;border-radius:12px;color:#4b5563;">
-            If this wasn't you, please change your password immediately and contact support.
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
+  const html = renderLoginTemplate({
+    date: prettyDate,
+    device: userAgent || "Unknown device",
+    browser: userAgent || "Unknown browser",
+    ip: ipAddress || "Unavailable",
+  });
 
-  return sendHtmlEmail({
+  return sendTemplateEmail({
     to: email,
+    template: "login-notification",
     subject: "Security notice: TrueNorth Financial sign-in",
     html,
     text: `A successful sign-in was recorded on ${prettyDate}. If this wasn't you, please change your password immediately and contact support.`,
+    metadata: { fullName: displayName, loginAt: prettyDate },
   });
+}
+
+export async function sendPasswordResetEmail({ email, resetLink }: { email: string; resetLink: string }) {
+  const html = renderPasswordResetTemplate({ link: resetLink });
+  return sendTemplateEmail({ to: email, template: "password-reset", subject: "Reset your TrueNorth password", html, text: "Use the secure link to reset your password." });
+}
+
+export async function sendVerificationEmail({ email, verifyLink }: { email: string; verifyLink: string }) {
+  const html = renderVerificationTemplate({ link: verifyLink });
+  return sendTemplateEmail({ to: email, template: "email-verification", subject: "Verify your email address", html, text: "Verify your email to continue." });
+}
+
+export async function sendSecurityAlertEmail({ email, subject }: { email: string; subject: string }) {
+  const html = renderSecurityAlertTemplate({ subject });
+  return sendTemplateEmail({ to: email, template: "security-alert", subject, html, text: subject });
+}
+
+export async function sendWalletAdjustmentEmail({
+  email,
+  action,
+  amount,
+  reason,
+}: {
+  email: string;
+  action: string;
+  amount: string;
+  reason: string;
+}) {
+  const html = renderAdminWalletAdjustmentTemplate({ action, amount, reason });
+  return sendTemplateEmail({ to: email, template: "admin-wallet-adjustment", subject: action, html, text: `${action}: ${amount}` });
+}
+
+export async function sendDepositApprovedEmail({ email, amount }: { email: string; amount: string }) {
+  const html = renderDepositApprovedTemplate({ amount });
+  return sendTemplateEmail({ to: email, template: "deposit-approved", subject: "Deposit approved", html, text: `Your deposit of ${amount} was approved.` });
+}
+
+export async function sendWithdrawalApprovedEmail({ email, amount }: { email: string; amount: string }) {
+  const html = renderWithdrawalApprovedTemplate({ amount });
+  return sendTemplateEmail({ to: email, template: "withdrawal-approved", subject: "Withdrawal approved", html, text: `Your withdrawal of ${amount} was approved.` });
 }
