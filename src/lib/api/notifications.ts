@@ -1,0 +1,27 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { supabase, currentUserId, unwrap, useInvalidate, type Notification } from "./client";
+
+export function useNotifications(limit?: number) {
+  return useQuery({
+    queryKey: ["notifications", limit ?? "all"],
+    queryFn: async () => {
+      let q = supabase.from("notifications").select("*").order("created_at", { ascending: false });
+      if (limit) q = q.limit(limit);
+      return unwrap<Notification[]>(await q);
+    },
+  });
+}
+
+export function useMarkNotificationsRead() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (ids?: string[]) => {
+      const uid = await currentUserId();
+      let q = supabase.from("notifications").update({ is_read: true }).eq("user_id", uid);
+      if (ids?.length) q = q.in("id", ids);
+      const { error } = await q;
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => invalidate(["notifications"]),
+  });
+}
