@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-type Candle = { open: number; close: number; high: number; low: number };
+type Candle = { open: number; close: number; high: number; low: number; volume: number };
 
 /**
  * Decorative animated market visual. Branding only — no live data, no controls.
@@ -19,22 +19,28 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
     let width = 0;
     let height = 0;
     let dpr = 1;
-    const candleWidth = 14;
-    const gap = 8;
+    const candleWidth = 18;
+    const gap = 10;
     const slot = candleWidth + gap;
 
     let candles: Candle[] = [];
-    let price = 100;
-    let particles: { x: number; y: number; r: number; vy: number; a: number }[] = [];
+    let price = 94;
+    let trend = 1;
+    let offset = 0;
+    let last = performance.now();
+    let raf = 0;
+    let nextCandleAt = 0;
 
     const makeCandle = (): Candle => {
+      const drift = trend * 0.9 + (Math.random() - 0.5) * 2.4;
       const open = price;
-      const drift = 0.35;
-      const close = Math.max(35, Math.min(165, open + (Math.random() - 0.5) * 9 + drift));
-      const high = Math.max(open, close) + Math.random() * 4;
-      const low = Math.min(open, close) - Math.random() * 4;
+      const close = Math.max(42, Math.min(158, open + drift));
+      const high = Math.max(open, close) + Math.random() * 4.2 + 1;
+      const low = Math.min(open, close) - Math.random() * 4.2 - 1;
+      const volume = 20 + Math.random() * 55;
       price = close;
-      return { open, close, high, low };
+      trend = Math.random() > 0.72 ? -trend : trend;
+      return { open, close, high, low, volume };
     };
 
     const resize = () => {
@@ -46,44 +52,36 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
       canvas.height = Math.floor(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const count = Math.ceil(width / slot) + 2;
+      const count = Math.ceil(width / slot) + 4;
       while (candles.length < count) candles.push(makeCandle());
       candles = candles.slice(-count);
-
-      particles = Array.from({ length: Math.round(width / 40) }, () => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        r: 1 + Math.random() * 2,
-        vy: 0.08 + Math.random() * 0.25,
-        a: 0.15 + Math.random() * 0.35,
-      }));
     };
 
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    let offset = 0;
-    let last = performance.now();
-    let raf = 0;
-
     const yFor = (v: number) => {
-      const min = 25;
-      const max = 175;
-      const pad = height * 0.12;
+      const min = 30;
+      const max = 170;
+      const pad = height * 0.16;
       return height - pad - ((v - min) / (max - min)) * (height - pad * 2);
     };
 
     const draw = (now: number) => {
       const dt = Math.min(now - last, 60);
       last = now;
-
       ctx.clearRect(0, 0, width, height);
 
-      // grid
-      ctx.strokeStyle = "rgba(77, 163, 255, 0.10)";
+      const base = ctx.createLinearGradient(0, 0, width, height);
+      base.addColorStop(0, "rgba(248,250,252,0.95)");
+      base.addColorStop(1, "rgba(240,249,255,0.96)");
+      ctx.fillStyle = base;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = "rgba(77, 163, 255, 0.12)";
       ctx.lineWidth = 1;
-      const step = 44;
+      const step = 40;
       for (let x = -((offset % step) | 0); x < width; x += step) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
@@ -97,19 +95,6 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
         ctx.stroke();
       }
 
-      // particles
-      for (const p of particles) {
-        p.y -= p.vy * (dt / 16);
-        if (p.y < -4) {
-          p.y = height + 4;
-          p.x = Math.random() * width;
-        }
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(124, 200, 255, ${p.a})`;
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
       if (!reduced) offset += dt * 0.045;
       if (offset >= slot) {
         offset -= slot;
@@ -117,7 +102,7 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
         candles.shift();
       }
 
-      // closing-price glow line
+      const lineY = height * 0.72;
       ctx.beginPath();
       candles.forEach((c, i) => {
         const x = i * slot - offset + candleWidth / 2;
@@ -125,20 +110,18 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
-      ctx.strokeStyle = "rgba(77, 163, 255, 0.55)";
-      ctx.lineWidth = 2;
-      ctx.shadowColor = "rgba(77, 163, 255, 0.7)";
-      ctx.shadowBlur = 18;
+      ctx.strokeStyle = "rgba(59, 130, 246, 0.65)";
+      ctx.lineWidth = 2.2;
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = "rgba(59, 130, 246, 0.45)";
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // candles
       candles.forEach((c, i) => {
         const x = i * slot - offset;
         const up = c.close >= c.open;
-        const body = up ? "rgba(34, 197, 94, 0.85)" : "rgba(239, 68, 68, 0.8)";
-        const wick = up ? "rgba(34, 197, 94, 0.5)" : "rgba(239, 68, 68, 0.45)";
-
+        const wick = up ? "rgba(34, 197, 94, 0.45)" : "rgba(248, 113, 113, 0.5)";
+        const body = up ? "rgba(74, 222, 128, 0.88)" : "rgba(248, 113, 113, 0.82)";
         ctx.strokeStyle = wick;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -148,13 +131,34 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
 
         const top = yFor(Math.max(c.open, c.close));
         const bottom = yFor(Math.min(c.open, c.close));
+        const bodyH = Math.max(3, bottom - top);
         ctx.fillStyle = body;
-        const h = Math.max(2, bottom - top);
-        const r = 3;
         ctx.beginPath();
-        ctx.roundRect(x, top, candleWidth, h, r);
+        ctx.roundRect(x, top, candleWidth, bodyH, 3);
         ctx.fill();
+
+        const barHeight = Math.max(4, (c.volume / 60) * 24);
+        ctx.fillStyle = up ? "rgba(59,130,246,0.35)" : "rgba(14,165,233,0.3)";
+        ctx.fillRect(x + candleWidth / 2 - 3, lineY + 8, 6, barHeight);
       });
+
+      ctx.beginPath();
+      ctx.moveTo(0, lineY);
+      ctx.lineTo(width, lineY);
+      ctx.strokeStyle = "rgba(59,130,246,0.16)";
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(59,130,246,0.08)";
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      candles.forEach((c, i) => {
+        const x = i * slot - offset + candleWidth / 2;
+        const y = yFor(c.close);
+        ctx.lineTo(x, y);
+      });
+      ctx.lineTo(width, height);
+      ctx.closePath();
+      ctx.fill();
 
       raf = requestAnimationFrame(draw);
     };
@@ -167,11 +171,5 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
     };
   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className={`h-full w-full ${className}`}
-    />
-  );
+  return <canvas ref={canvasRef} aria-hidden="true" className={`h-full w-full ${className}`} />;
 }

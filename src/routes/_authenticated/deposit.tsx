@@ -114,6 +114,7 @@ function DepositPage() {
                 <p className="text-xs text-muted-foreground">
                   {method.name} deposit address ({method.network})
                 </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Supported for deposits only: Bitcoin, Ethereum, USDT TRC20, USDT ERC20, USDT BEP20, BNB, and Solana.</p>
                 <div className="mt-2 flex items-center gap-2">
                   <code className="min-w-0 flex-1 truncate rounded-xl bg-card px-3 py-2 text-xs">
                     {method.wallet_address}

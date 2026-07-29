@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Route as AuthRoute } from "@/routes/_authenticated/route";
 import { BrandLockup } from "@/components/brand";
 import { useWallet, useIsAdmin, useNotifications, formatCurrency } from "@/lib/api";
+import { signOut } from "@/lib/api/auth";
 
 function useTheme() {
   const [dark, setDark] = useState(false);
@@ -53,7 +54,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await signOut();
     toast.success("Signed out");
     navigate({ to: "/auth", replace: true });
   }

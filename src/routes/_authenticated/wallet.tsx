@@ -34,7 +34,7 @@ function WalletPage() {
           </p>
           <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs text-white">
             <Gift className="size-3.5" />
-            {formatCurrency(w?.welcome_bonus, 0)} Welcome Bonus · promotional, not withdrawable
+            {formatCurrency(w?.welcome_bonus, 0)} Welcome Bonus · separate balance, not withdrawable, not transferable, and not investable
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Link
@@ -63,8 +63,8 @@ function WalletPage() {
       <SectionCard title="How your balance works">
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li>• Deposits are credited after the blockchain transaction is confirmed by our team.</li>
-          <li>• The $1,000 Welcome Bonus is promotional: it cannot be withdrawn or used to buy plans.</li>
-          <li>• Profits from matured plans are added to your available balance automatically.</li>
+          <li>• Your welcome bonus is kept separate, cannot be withdrawn, transferred, or invested, and is only available as a promotional balance.</li>
+          <li>• Investing unlocks after your first confirmed deposit of at least $1,000.</li>
         </ul>
       </SectionCard>
     </div>

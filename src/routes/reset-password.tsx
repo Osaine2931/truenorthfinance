@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
+import { updatePassword } from "@/lib/api/auth";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -24,8 +24,7 @@ function ResetPassword() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      await updatePassword(password);
       toast.success("Password updated");
       navigate({ to: "/dashboard" });
     } catch (err) {

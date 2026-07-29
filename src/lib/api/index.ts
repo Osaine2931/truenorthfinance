@@ -13,3 +13,4 @@ export * from "./wallet";
 export * from "./investments";
 export * from "./transactions";
 export * from "./notifications";
+export * from "./admin";

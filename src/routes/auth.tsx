@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
 import { useRedirectIfAuthenticated, resolveHomePath } from "@/hooks/use-session-redirect";
+import { signIn, signUp } from "@/lib/api/auth";
 
 type AuthSearch = { mode?: "login" | "register"; redirect?: string };
 
@@ -39,22 +39,13 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "register") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { full_name: name },
-          },
-        });
-        if (error) throw error;
+        await signUp(email, password, { full_name: name });
         toast.success("Account created", {
-          description: "Check your email to verify your address.",
+          description: "Check your email to verify your address and access your dashboard.",
         });
         navigate({ to: await resolveHomePath(), replace: true });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await signIn(email, password);
         toast.success("Welcome back");
         const home = await resolveHomePath();
         navigate({ to: (search.redirect as "/dashboard") ?? home, replace: true });

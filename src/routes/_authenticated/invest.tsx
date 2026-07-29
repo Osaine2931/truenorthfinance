@@ -83,7 +83,9 @@ function Invest() {
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-warning/20 text-warning">
             <Lock className="size-5" />
           </span>
-          <p className="min-w-0 flex-1 text-sm">{BONUS_NOTICE}</p>
+          <p className="min-w-0 flex-1 text-sm">
+            Investing is locked until your first confirmed deposit of at least {formatCurrency(1000, 0)} is received. The welcome bonus is promotional and cannot be invested, withdrawn, or transferred.
+          </p>
           <Link to="/deposit" className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white">
             Make a deposit
           </Link>

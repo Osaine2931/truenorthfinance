@@ -80,6 +80,9 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  beforeLoad: async ({ context }) => {
+    if (!context.isAdmin) throw new Error("Administrator access required");
+  },
   component: AdminPage,
 });
 

@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveHomePath as resolveHomePathFromAuth } from "@/lib/api/auth";
 
 export async function resolveHomePath(): Promise<"/dashboard" | "/admin"> {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return "/dashboard";
-  const { data: role } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", data.user.id)
-    .eq("role", "admin")
-    .maybeSingle();
-  return role ? "/admin" : "/dashboard";
+  return resolveHomePathFromAuth();
 }
 
 /**
