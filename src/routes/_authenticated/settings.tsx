@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { PageHeader, SectionCard, Field, inputClass } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — TrueNorth Financial" }] }),
@@ -8,41 +9,51 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function Settings() {
-  const [twoFa, setTwoFa] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  const [language, setLanguage] = useState("en");
   const [emails, setEmails] = useState(true);
-  const [dark, setDark] = useState(false);
+  const [security, setSecurity] = useState(true);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("tn-theme") as "light" | "dark" | null;
+    if (stored) setTheme(stored === "dark" ? "dark" : "light");
+  }, []);
+
+  function updateTheme(value: "light" | "dark" | "system") {
+    setTheme(value);
+    const resolved = value === "dark" ? "dark" : value === "light" ? "light" : "light";
+    document.documentElement.classList.toggle("dark", resolved === "dark");
+    localStorage.setItem("tn-theme", resolved);
+    toast.success(`Theme set to ${value}`);
+  }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="font-display text-3xl font-semibold text-navy sm:text-4xl">Settings</h1>
-      </div>
-      <div className="surface-card divide-y divide-border">
-        <Toggle
-          label="Two-factor authentication"
-          desc="Add an extra layer of security to your account."
-          value={twoFa}
-          onChange={(v) => {
-            setTwoFa(v);
-            toast.success(v ? "2FA enabled" : "2FA disabled");
-          }}
-        />
-        <Toggle
-          label="Email notifications"
-          desc="Portfolio updates, dividends, and account activity."
-          value={emails}
-          onChange={setEmails}
-        />
-        <Toggle
-          label="Dark mode"
-          desc="Use a darker theme in low-light environments."
-          value={dark}
-          onChange={(v) => {
-            setDark(v);
-            document.documentElement.classList.toggle("dark", v);
-          }}
-        />
-      </div>
+    <div className="animate-fade-up space-y-6">
+      <PageHeader title="Settings" subtitle="Manage your workspace preferences and security controls." />
+      <SectionCard title="Preferences">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Theme">
+            <select value={theme} onChange={(e) => updateTheme(e.target.value as "light" | "dark" | "system")} className={inputClass}>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="system">System</option>
+            </select>
+          </Field>
+          <Field label="Language">
+            <select value={language} onChange={(e) => setLanguage(e.target.value)} className={inputClass}>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </Field>
+        </div>
+      </SectionCard>
+      <SectionCard title="Notifications & security">
+        <div className="space-y-3">
+          <Toggle label="Email notifications" desc="Receive updates about wallet changes and investment progress." value={emails} onChange={setEmails} />
+          <Toggle label="Security alerts" desc="Get notified for password changes and unusual activity." value={security} onChange={setSecurity} />
+        </div>
+      </SectionCard>
     </div>
   );
 }

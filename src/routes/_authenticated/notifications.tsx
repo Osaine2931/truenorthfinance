@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, Trash2 } from "lucide-react";
 import { useNotifications, useMarkNotificationsRead, formatDateTime } from "@/lib/api";
 import { PageHeader, SectionCard, EmptyState, RowsSkeleton, btnGhost } from "@/components/ui-kit";
 
@@ -50,6 +50,9 @@ function Notifications() {
                   <p className="text-sm text-muted-foreground">{n.body}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground">{formatDateTime(n.created_at)}</p>
                 </div>
+                <button className="rounded-lg border border-border p-2 text-muted-foreground hover:text-destructive" aria-label="Delete notification">
+                  <Trash2 className="size-4" />
+                </button>
               </li>
             ))}
           </ul>

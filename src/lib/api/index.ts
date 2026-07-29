@@ -14,3 +14,6 @@ export * from "./investments";
 export * from "./transactions";
 export * from "./notifications";
 export * from "./admin";
+export * from "./audit";
+export * from "./kyc";
+export * from "./support";

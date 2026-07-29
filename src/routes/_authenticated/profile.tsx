@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck } from "lucide-react";
-import { useProfile, useUpdateProfile, useWallet, formatCurrency, formatDate } from "@/lib/api";
-import { PageHeader, SectionCard, Field, inputClass, btnPrimary } from "@/components/ui-kit";
+import { Loader2, ShieldCheck, UploadCloud, BellRing, KeyRound, MailPlus, UserCircle2 } from "lucide-react";
+import { useProfile, useUpdateProfile, useWallet, useKyc, useSubmitKyc, formatCurrency, formatDate } from "@/lib/api";
+import { PageHeader, SectionCard, Field, inputClass, btnPrimary, btnGhost } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -18,8 +18,12 @@ export const Route = createFileRoute("/_authenticated/profile")({
 function ProfilePage() {
   const profile = useProfile();
   const wallet = useWallet();
+  const kyc = useKyc();
+  const submitKyc = useSubmitKyc();
   const update = useUpdateProfile();
   const [form, setForm] = useState({ full_name: "", phone: "", country: "" });
+  const [kycLevel, setKycLevel] = useState(1);
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (profile.data) {
@@ -28,6 +32,10 @@ function ProfilePage() {
         phone: profile.data.phone ?? "",
         country: profile.data.country ?? "",
       });
+      setKycLevel(kyc.data?.level ?? 1);
+      setNotes(kyc.data?.notes ?? "");
+    }
+  }, [profile.data, kyc.data]);
     }
   }, [profile.data]);
 
@@ -40,7 +48,17 @@ function ProfilePage() {
     }
   }
 
+  async function submitVerification() {
+    try {
+      await submitKyc.mutateAsync({ level: kycLevel, notes });
+      toast.success("KYC request submitted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "KYC submission failed");
+    }
+  }
+
   const initials = (form.full_name || profile.data?.email || "U").slice(0, 2).toUpperCase();
+  const kycStatus = kyc.data?.status ?? "not_started";
 
   return (
     <div className="animate-fade-up space-y-6">
@@ -90,9 +108,51 @@ function ProfilePage() {
             <input value={profile.data?.referral_code ?? ""} readOnly className={`${inputClass} bg-secondary`} />
           </Field>
         </div>
-        <button onClick={save} disabled={update.isPending} className={`${btnPrimary} mt-5`}>
-          {update.isPending && <Loader2 className="size-4 animate-spin" />} Save changes
-        </button>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button onClick={save} disabled={update.isPending} className={btnPrimary}>
+            {update.isPending && <Loader2 className="size-4 animate-spin" />} Save changes
+          </button>
+          <button className={btnGhost}>
+            <MailPlus className="size-4" /> Verify email
+          </button>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Verification & security">
+        <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="rounded-2xl border border-border/70 bg-secondary/50 p-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-4 text-royal" />
+              <p className="text-sm font-semibold text-navy">KYC status: {kycStatus}</p>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Complete Level 1 for basic verification, Level 2 with a government ID, and Level 3 with a selfie.
+            </p>
+            <div className="mt-4 space-y-3">
+              <Field label="Verification level">
+                <select value={kycLevel} onChange={(e) => setKycLevel(Number(e.target.value))} className={inputClass}>
+                  <option value={1}>Level 1 · Basic information</option>
+                  <option value={2}>Level 2 · Government ID</option>
+                  <option value={3}>Level 3 · Selfie verification</option>
+                </select>
+              </Field>
+              <Field label="Notes">
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={`${inputClass} min-h-24`} placeholder="Add supporting context for your verification" />
+              </Field>
+            </div>
+            <button onClick={submitVerification} disabled={submitKyc.isPending} className={`${btnPrimary} mt-4`}>
+              {submitKyc.isPending && <Loader2 className="size-4 animate-spin" />} Submit verification
+            </button>
+          </div>
+          <div className="space-y-3 rounded-2xl border border-border/70 bg-card p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-navy"><KeyRound className="size-4 text-royal" /> Security settings</div>
+            <div className="rounded-xl bg-secondary/70 p-3 text-sm text-muted-foreground">
+              Password updates, email verification, and notification preferences are managed from this secure profile area.
+            </div>
+            <div className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-sm text-muted-foreground"><BellRing className="size-4 text-royal" /> Alerts enabled for wallet, investment, and trade updates</div>
+            <div className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-sm text-muted-foreground"><UploadCloud className="size-4 text-royal" /> Upload support images from the support center</div>
+          </div>
+        </div>
       </SectionCard>
     </div>
   );
