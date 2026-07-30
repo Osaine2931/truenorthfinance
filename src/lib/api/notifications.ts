@@ -27,3 +27,15 @@ export function useMarkNotificationsRead() {
     onSuccess: () => invalidate(["notifications"]),
   });
 }
+
+export function useDeleteNotification() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const uid = await currentUserId();
+      const { error } = await supabase.from("notifications").delete().eq("id", id).eq("user_id", uid);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => invalidate(["notifications"]),
+  });
+}

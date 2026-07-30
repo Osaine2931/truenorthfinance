@@ -227,6 +227,10 @@ function Invest() {
                     Estimated profit: {formatCurrency(expected)} · Available balance: {formatCurrency(balance)}
                   </p>
                 </div>
+                <div className="rounded-2xl border border-border/70 bg-card p-4 text-sm text-muted-foreground">
+                  <p className="font-semibold text-navy">Terms</p>
+                  <p className="mt-1">Your capital is committed for the full plan duration. Early withdrawals are not available and the expected return is based on the plan terms.</p>
+                </div>
               </div>
 
               <div className="space-y-3 rounded-2xl border border-border/70 bg-card p-4">
@@ -234,16 +238,16 @@ function Invest() {
                   <Wallet className="size-4 text-royal" /> Wallet checks
                 </div>
                 {!unlocked ? (
-                  <p className="text-sm text-muted-foreground">Your wallet must be unlocked by a confirmed $1,000+ deposit before investing.</p>
+                  <p className="text-sm text-muted-foreground">Your wallet must be unlocked by a confirmed deposit of at least {formatCurrency(1000, 0)} before investing.</p>
                 ) : !canAfford ? (
                   <div>
-                    <p className="text-sm font-semibold text-destructive">Your available balance is insufficient to purchase this investment.</p>
+                    <p className="text-sm font-semibold text-destructive">Your available wallet balance is insufficient.</p>
                     <button
                       type="button"
                       onClick={() => navigate({ to: "/deposit" })}
                       className={`${btnPrimary} mt-3 w-full`}
                     >
-                      Top up wallet
+                      TOP UP WALLET
                     </button>
                   </div>
                 ) : (

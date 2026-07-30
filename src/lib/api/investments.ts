@@ -56,9 +56,8 @@ export function useCreateInvestment() {
         throw new Error("Complete your first deposit of at least $1,000 to unlock investing.");
       }
       if (availableBalance < amount) {
-        throw new Error("Your available balance is insufficient to purchase this investment.");
+        throw new Error(`Your available balance is ${formatCurrency(availableBalance, 0)}. Add funds to cover ${formatCurrency(amount, 0)} before investing.`);
       }
-
       const nextAvailable = availableBalance - amount;
       const nextBalance = Math.max(nextAvailable, 0);
 
