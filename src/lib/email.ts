@@ -10,6 +10,11 @@ import {
   renderAdminWalletAdjustmentTemplate,
   renderDepositApprovedTemplate,
   renderWithdrawalApprovedTemplate,
+  renderWalletCreditedTemplate,
+  renderWalletDebitedTemplate,
+  renderInvestmentPurchasedTemplate,
+  renderInvestmentCompletedTemplate,
+  renderAnnouncementTemplate,
   type EmailMessage,
   type EmailTemplateKey,
 } from "./email/index";
@@ -276,5 +281,82 @@ export async function sendWithdrawalApprovedEmail({
     subject: "Withdrawal approved",
     html,
     text: `Your withdrawal of ${amount} was approved.`,
+  });
+}
+
+export async function sendWalletCreditedEmail({ email, amount }: { email: string; amount: string }) {
+  const html = renderWalletCreditedTemplate({ amount });
+  return sendTemplateEmail({
+    to: email,
+    template: "wallet-credited",
+    subject: "Wallet credited",
+    html,
+    text: `Your wallet was credited by ${amount}.`,
+  });
+}
+
+export async function sendWalletDebitedEmail({ email, amount }: { email: string; amount: string }) {
+  const html = renderWalletDebitedTemplate({ amount });
+  return sendTemplateEmail({
+    to: email,
+    template: "wallet-debited",
+    subject: "Wallet debited",
+    html,
+    text: `Your wallet was debited by ${amount}.`,
+  });
+}
+
+export async function sendInvestmentPurchasedEmail({
+  email,
+  plan,
+  amount,
+}: {
+  email: string;
+  plan: string;
+  amount: string;
+}) {
+  const html = renderInvestmentPurchasedTemplate({ plan, amount });
+  return sendTemplateEmail({
+    to: email,
+    template: "investment-purchased",
+    subject: "Investment purchased",
+    html,
+    text: `Your ${plan} investment of ${amount} is now active.`,
+  });
+}
+
+export async function sendInvestmentCompletedEmail({
+  email,
+  plan,
+}: {
+  email: string;
+  plan: string;
+}) {
+  const html = renderInvestmentCompletedTemplate({ plan });
+  return sendTemplateEmail({
+    to: email,
+    template: "investment-completed",
+    subject: "Investment completed",
+    html,
+    text: `Your ${plan} investment has matured and profits were credited.`,
+  });
+}
+
+export async function sendAnnouncementEmail({
+  email,
+  title,
+  body,
+}: {
+  email: string;
+  title: string;
+  body: string;
+}) {
+  const html = renderAnnouncementTemplate({ title, body });
+  return sendTemplateEmail({
+    to: email,
+    template: "announcement",
+    subject: title,
+    html,
+    text: body,
   });
 }

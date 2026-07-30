@@ -163,3 +163,86 @@ export function renderWithdrawalApprovedTemplate({ amount }: { amount: string })
     </div>
   `;
 }
+
+export function renderWalletCreditedTemplate({ amount }: { amount: string }) {
+  return `
+    <div style="font-family:Inter,Arial,sans-serif;background:#f8fafc;padding:24px;">
+      <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #dbeafe;">
+        <div style="${brandingStyles};padding:24px 32px;">
+          <p style="margin:0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.8;">Wallet Update</p>
+          <h1 style="margin:8px 0 0;font-size:24px;">Funds were credited to your wallet</h1>
+        </div>
+        <div style="padding:32px;color:#334155;line-height:1.7;">
+          <p><strong>Amount credited:</strong> ${amount}</p>
+          <p>Your balance has been updated and is ready for your next investment or withdrawal request.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+export function renderWalletDebitedTemplate({ amount }: { amount: string }) {
+  return `
+    <div style="font-family:Inter,Arial,sans-serif;background:#f8fafc;padding:24px;">
+      <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #dbeafe;">
+        <div style="${brandingStyles};padding:24px 32px;">
+          <p style="margin:0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.8;">Wallet Update</p>
+          <h1 style="margin:8px 0 0;font-size:24px;">Funds were debited from your wallet</h1>
+        </div>
+        <div style="padding:32px;color:#334155;line-height:1.7;">
+          <p><strong>Amount debited:</strong> ${amount}</p>
+          <p>Please review any recent activity if you did not expect this change.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+export function renderInvestmentPurchasedTemplate({ plan, amount }: { plan: string; amount: string }) {
+  return `
+    <div style="font-family:Inter,Arial,sans-serif;background:#f8fafc;padding:24px;">
+      <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #dbeafe;">
+        <div style="${brandingStyles};padding:24px 32px;">
+          <p style="margin:0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.8;">Investment Update</p>
+          <h1 style="margin:8px 0 0;font-size:24px;">Your ${plan} investment is active</h1>
+        </div>
+        <div style="padding:32px;color:#334155;line-height:1.7;">
+          <p><strong>Amount invested:</strong> ${amount}</p>
+          <p>Progress updates and profit payouts will be sent to you automatically as the investment matures.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+export function renderInvestmentCompletedTemplate({ plan }: { plan: string }) {
+  return `
+    <div style="font-family:Inter,Arial,sans-serif;background:#f8fafc;padding:24px;">
+      <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #dbeafe;">
+        <div style="${brandingStyles};padding:24px 32px;">
+          <p style="margin:0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.8;">Investment Complete</p>
+          <h1 style="margin:8px 0 0;font-size:24px;">Your ${plan} investment matured</h1>
+        </div>
+        <div style="padding:32px;color:#334155;line-height:1.7;">
+          <p>Profits have been credited to your wallet and your investment record has been marked complete.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+export function renderAnnouncementTemplate({ title, body }: { title: string; body: string }) {
+  return `
+    <div style="font-family:Inter,Arial,sans-serif;background:#f8fafc;padding:24px;">
+      <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #dbeafe;">
+        <div style="${brandingStyles};padding:24px 32px;">
+          <p style="margin:0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.8;">Announcement</p>
+          <h1 style="margin:8px 0 0;font-size:24px;">${title}</h1>
+        </div>
+        <div style="padding:32px;color:#334155;line-height:1.7;">
+          <p>${body}</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
