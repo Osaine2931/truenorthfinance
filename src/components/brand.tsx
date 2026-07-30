@@ -49,7 +49,13 @@ export function BrandLockup({
 }) {
   return (
     <span className={cn("flex min-w-0 items-center gap-2.5", className)}>
-      <BrandMark className={cn(compact ? "size-9" : "size-12")} />
+      <BrandMark
+        className={cn(
+          compact ? "size-9" : "size-12",
+          tone === "invert" && "rounded-xl bg-white/95 p-1.5 shadow-sm",
+        )}
+      />
+
       <span className="min-w-0 leading-tight">
         <span
           className={cn(
