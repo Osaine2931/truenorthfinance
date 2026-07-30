@@ -9,6 +9,7 @@ import { Route as AuthRoute } from "@/routes/_authenticated/route";
 import { BrandLockup } from "@/components/brand";
 import { useWallet, useIsAdmin, useNotifications, formatCurrency } from "@/lib/api";
 import { signOut } from "@/lib/api/auth";
+import { useInvestmentAutomation, useLiveDataSync } from "@/lib/live-sync";
 
 function useTheme() {
   const [dark, setDark] = useState(false);
@@ -39,6 +40,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const wallet = useWallet();
   const isAdmin = useIsAdmin();
   const notifications = useNotifications(20);
+  useLiveDataSync();
+  useInvestmentAutomation();
 
   const unread = (notifications.data ?? []).filter((n) => !n.is_read).length;
   const navItems = isAdmin.data ? [...primaryNav, adminNav] : primaryNav;
