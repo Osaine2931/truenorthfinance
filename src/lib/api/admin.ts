@@ -2,7 +2,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   supabase,
   unwrap,
-  currentUser,
   useAdminInvalidate,
   type Plan,
   type Profile,
@@ -16,6 +15,7 @@ import {
   type AuditLog,
   type TablesInsert,
 } from "./client";
+import { currentUser } from "./auth";
 
 /* ---------------- Reads ---------------- */
 
