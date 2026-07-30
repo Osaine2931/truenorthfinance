@@ -14,7 +14,6 @@ import appCss from "../styles.css?url";
 import { registerServiceWorker } from "@/lib/pwa";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import logoAsset from "@/assets/truenorth-logo.asset.json";
 
 function NotFoundComponent() {
   return (
