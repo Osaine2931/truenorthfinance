@@ -17,8 +17,12 @@ function getAutomationClient() {
   });
 }
 
-async function upsertSetting(client: ReturnType<typeof createClient>, key: string, value: string) {
-  const { error } = await client.from("site_settings").upsert({ key, value });
+type AutomationClient = ReturnType<typeof getAutomationClient>;
+
+async function upsertSetting(client: AutomationClient, key: string, value: string) {
+  const { error } = await (client.from("site_settings") as unknown as {
+    upsert: (payload: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+  }).upsert({ key, value });
   if (error) {
     console.error(`[automation] failed to save setting ${key}`, error.message);
   }
