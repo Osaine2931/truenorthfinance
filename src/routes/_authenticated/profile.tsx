@@ -36,8 +36,6 @@ function ProfilePage() {
       setNotes(kyc.data?.notes ?? "");
     }
   }, [profile.data, kyc.data]);
-    }
-  }, [profile.data]);
 
   async function save() {
     try {
