@@ -27,17 +27,6 @@ export type Announcement = Tables<"announcements">;
 export type SiteSetting = Tables<"site_settings">;
 export type AuditLog = Tables<"admin_audit_logs">;
 
-export async function currentUserId() {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) throw new Error("Not authenticated");
-  return data.user.id;
-}
-
-export async function currentUser() {
-  const { data } = await supabase.auth.getUser();
-  return data.user ?? null;
-}
-
 export function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
   if (error) throw new Error(error.message);
   return (data ?? []) as T;

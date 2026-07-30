@@ -25,6 +25,24 @@ export interface BackendAdapter {
   delete(table: string, options?: BackendSelectOptions): Promise<{ error: BackendError | null }>;
 }
 
+interface LooseBuilder extends PromiseLike<{ data: unknown; error: { message: string } | null }> {
+  filter(column: string, operator: string, value: unknown): LooseBuilder;
+  order(column: string, options: { ascending: boolean }): LooseBuilder;
+  limit(count: number): LooseBuilder;
+  select(columns?: string): LooseBuilder;
+  single(): LooseBuilder;
+  maybeSingle(): LooseBuilder;
+}
+
+const db = supabase as unknown as {
+  from: (table: string) => {
+    select: (columns: string) => LooseBuilder;
+    insert: (payload: Record<string, unknown>) => LooseBuilder;
+    update: (payload: Record<string, unknown>) => LooseBuilder;
+    delete: () => LooseBuilder;
+  };
+};
+
 class SupabaseBackendAdapter implements BackendAdapter {
   async currentUser() {
     const { data } = await supabase.auth.getUser();
@@ -71,10 +89,10 @@ class SupabaseBackendAdapter implements BackendAdapter {
   }
 
   async select<T>(table: string, options: BackendSelectOptions = {}) {
-    let query = supabase.from(table).select("*");
+    let query = db.from(table).select("*");
     if (options.filters) {
       for (const filter of options.filters) {
-        query = query.filter(filter.column, filter.operator, filter.value as never);
+        query = query.filter(filter.column, filter.operator, filter.value);
       }
     }
     if (options.orderBy) {
@@ -88,10 +106,10 @@ class SupabaseBackendAdapter implements BackendAdapter {
   }
 
   async maybeSingle<T>(table: string, options: BackendSelectOptions = {}) {
-    let query = supabase.from(table).select("*");
+    let query = db.from(table).select("*");
     if (options.filters) {
       for (const filter of options.filters) {
-        query = query.filter(filter.column, filter.operator, filter.value as never);
+        query = query.filter(filter.column, filter.operator, filter.value);
       }
     }
     if (options.orderBy) {
@@ -102,15 +120,15 @@ class SupabaseBackendAdapter implements BackendAdapter {
   }
 
   async insert<T>(table: string, payload: Record<string, unknown>) {
-    const { data, error } = await supabase.from(table).insert(payload).select().single();
+    const { data, error } = await db.from(table).insert(payload).select().single();
     return { data: data as T | null, error: error ? { message: error.message } : null };
   }
 
   async update<T>(table: string, payload: Record<string, unknown>, options: BackendSelectOptions = {}) {
-    let query = supabase.from(table).update(payload);
+    let query = db.from(table).update(payload);
     if (options.filters) {
       for (const filter of options.filters) {
-        query = query.filter(filter.column, filter.operator, filter.value as never);
+        query = query.filter(filter.column, filter.operator, filter.value);
       }
     }
     const { data, error } = await query.select().single();
@@ -118,10 +136,10 @@ class SupabaseBackendAdapter implements BackendAdapter {
   }
 
   async delete(table: string, options: BackendSelectOptions = {}) {
-    let query = supabase.from(table).delete();
+    let query = db.from(table).delete();
     if (options.filters) {
       for (const filter of options.filters) {
-        query = query.filter(filter.column, filter.operator, filter.value as never);
+        query = query.filter(filter.column, filter.operator, filter.value);
       }
     }
     const { error } = await query;

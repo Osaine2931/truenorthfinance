@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { supabase, currentUserId, unwrap, useInvalidate, type Plan, type Investment } from "./client";
+import { supabase, unwrap, useInvalidate, type Plan, type Investment } from "./client";
+import { currentUserId } from "./auth";
 import { formatCurrency } from "./format";
 
 export type InvestmentStatus = "active" | "completed" | "cancelled" | "frozen";
