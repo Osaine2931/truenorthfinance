@@ -13,6 +13,97 @@ function getNowPaymentsConfig() {
   };
 }
 
+function createConfigError(missing: string[]) {
+  return createError({
+    statusCode: 500,
+    statusMessage: `NOWPayments is not configured: missing ${missing.join(", ")}`,
+  });
+}
+
+function getConfigValidationError(config: ReturnType<typeof getNowPaymentsConfig>) {
+  const missing: string[] = [];
+  if (!config.apiKey) missing.push("NOWPAYMENTS_API_KEY");
+  if (!config.ipnSecret) missing.push("NOWPAYMENTS_IPN_SECRET");
+  return missing.length ? createConfigError(missing) : null;
+}
+
+async function creditWalletForDeposit(payload: Record<string, unknown>) {
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn("[nowpayments] missing Supabase credentials for wallet crediting");
+    return;
+  }
+
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const depositId = String(payload.deposit_id ?? payload.order_id ?? "");
+  const userId = String(payload.user_id ?? payload.customer_id ?? "");
+  const amount = Number(payload.amount ?? payload.price_amount ?? 0);
+  if (!depositId && !userId) return;
+
+  const depositFilter = depositId ? { column: "id", operator: "eq", value: depositId } : null;
+  const userFilter = userId ? { column: "user_id", operator: "eq", value: userId } : null;
+
+  const depositQuery = depositFilter
+    ? supabaseAdmin.from("deposits").select("id,user_id,amount,status").eq("id", depositId)
+    : userFilter
+      ? supabaseAdmin.from("deposits").select("id,user_id,amount,status").eq("user_id", userId)
+      : null;
+
+  if (!depositQuery) return;
+  const { data: deposits, error: depositError } = await depositQuery.order("created_at", {
+    ascending: false,
+  });
+  if (depositError || !deposits?.length) return;
+
+  const deposit = deposits[0];
+  if (deposit.status === "completed") return;
+
+  const walletResponse = await supabaseAdmin
+    .from("wallets")
+    .select("id,available_balance,total_deposited,has_deposited")
+    .eq("user_id", deposit.user_id)
+    .maybeSingle();
+  if (walletResponse.error || !walletResponse.data) return;
+
+  const nextBalance = Number(walletResponse.data.available_balance ?? 0) + Number(deposit.amount ?? 0);
+  const nextDeposited = Number(walletResponse.data.total_deposited ?? 0) + Number(deposit.amount ?? 0);
+
+  await supabaseAdmin
+    .from("wallets")
+    .update({
+      available_balance: nextBalance,
+      total_deposited: nextDeposited,
+      has_deposited: true,
+    })
+    .eq("user_id", deposit.user_id);
+
+  await supabaseAdmin.from("deposits").update({ status: "completed" }).eq("id", deposit.id);
+  await supabaseAdmin.from("transactions").insert({
+    user_id: deposit.user_id,
+    type: "Deposit",
+    direction: "in",
+    amount: Number(deposit.amount ?? 0),
+    status: "completed",
+    description: "NOWPayments webhook confirmation",
+  });
+  await supabaseAdmin.from("activities").insert({
+    user_id: deposit.user_id,
+    action: "Deposit confirmed",
+    detail: `NOWPayments deposit credited ${amount || Number(deposit.amount ?? 0)}`,
+  });
+  await supabaseAdmin.from("notifications").insert({
+    user_id: deposit.user_id,
+    title: "Deposit completed",
+    body: "Your wallet has been credited successfully.",
+    kind: "success",
+  });
+}
+
 function getSignatureHeader(headers: Headers | Record<string, string | string[] | undefined>) {
   if (headers instanceof Headers) {
     return (
@@ -93,6 +184,8 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 401, statusMessage: "Invalid webhook signature" });
     }
 
+    await creditWalletForDeposit(typeof body === "object" && body ? body : {});
+
     return {
       ok: true,
       received: true,
@@ -108,6 +201,10 @@ export default defineEventHandler(async (event) => {
 
     const body = (await readBody(event)) || {};
     const config = getNowPaymentsConfig();
+    const validationError = getConfigValidationError(config);
+    if (validationError) {
+      throw validationError;
+    }
 
     if (!config.apiKey) {
       return createMockInvoice(body);

@@ -102,6 +102,7 @@ const TABS = [
   "Notifications",
   "Announcements",
   "Audit log",
+  "System status",
   "Settings",
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -160,6 +161,7 @@ function AdminPage() {
       {tab === "Notifications" && <NotificationsTab />}
       {tab === "Announcements" && <AnnouncementsTab />}
       {tab === "Audit log" && <AuditTab />}
+      {tab === "System status" && <SystemStatusTab />}
       {tab === "Settings" && <SettingsTab />}
     </div>
   );
@@ -1384,6 +1386,18 @@ function AuditTab() {
 }
 
 /* ---------------- Settings ---------------- */
+
+function SystemStatusTab() {
+  return (
+    <div className="space-y-4">
+      <SectionCard title="System status" description="Live diagnostics and service health.">
+        <div className="rounded-2xl border border-border/70 bg-secondary/40 p-4 text-sm text-muted-foreground">
+          Open the dedicated system status experience for live checks, logs, SMTP diagnostics, and NOWPayments health.
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
 
 function SettingsTab() {
   const settings = useAdminSettings();

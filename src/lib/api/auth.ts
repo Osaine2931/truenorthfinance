@@ -67,6 +67,17 @@ async function ensureProfileAndWallet(
   }
 }
 
+async function syncSupabaseSession(data: unknown) {
+  const session = (data as { session?: { access_token?: string; refresh_token?: string } | null })
+    ?.session;
+  if (session?.access_token && session.refresh_token) {
+    await supabase.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+  }
+}
+
 async function sendPostAuthEmails(
   user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null,
 ) {
@@ -94,6 +105,7 @@ async function sendPostAuthEmails(
 
 export async function signIn(email: string, password: string) {
   const data = await backend.signIn(email, password);
+  await syncSupabaseSession(data);
   const user =
     (
       data as {
@@ -121,8 +133,10 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signUp(email: string, password: string, meta?: Record<string, unknown>) {
-  const data = await backend.signUp(email, password, meta);
-  const user =
+  let data = await backend.signUp(email, password, meta);
+  await syncSupabaseSession(data);
+
+  let user =
     (
       data as {
         user?: {
@@ -132,6 +146,18 @@ export async function signUp(email: string, password: string, meta?: Record<stri
         } | null;
       }
     )?.user ?? null;
+
+  if (!user) {
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError) throw new Error(signInError.message);
+    await syncSupabaseSession(signInData);
+    user = signInData.user ?? null;
+    data = signInData as typeof data;
+  }
+
   if (user) {
     await ensureProfileAndWallet(
       user.id,

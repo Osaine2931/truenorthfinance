@@ -18,6 +18,8 @@ import {
   type EmailMessage,
   type EmailTemplateKey,
 } from "./email/index";
+import { appendSystemLog } from "@/lib/system-logs";
+import { sendSmtpEmail, verifySmtpConnection, getSmtpStatus } from "@/lib/email/smtp";
 
 type EmailPayload = {
   to: string;
@@ -40,14 +42,29 @@ function createTextFromHtml(html: string) {
     .trim();
 }
 
-const emailService = new EmailService(new ConsoleEmailProvider(), defaultEmailServiceConfig);
+const emailService = new EmailService(new ConsoleEmailProvider(), {
+  ...defaultEmailServiceConfig,
+  provider: "smtp",
+  enabled: true,
+});
 
 export function getEmailService() {
   return emailService;
 }
 
 export async function sendEmailMessage(message: EmailMessage) {
-  return emailService.send(message);
+  try {
+    return await sendSmtpEmail({
+      to: message.to,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+    });
+  } catch (error) {
+    const messageText = error instanceof Error ? error.message : "Unknown email error";
+    appendSystemLog({ category: "smtp", level: "error", message: "Email send failed", details: { error: messageText } });
+    throw error;
+  }
 }
 
 export async function sendTemplateEmail({
@@ -65,14 +82,18 @@ export async function sendTemplateEmail({
   text?: string;
   metadata?: Record<string, unknown>;
 }) {
-  return emailService.send({
-    to,
-    subject,
-    html,
-    text: text ?? createTextFromHtml(html),
-    template,
-    metadata,
-  });
+  try {
+    return await sendSmtpEmail({
+      to,
+      subject,
+      html,
+      text: text ?? createTextFromHtml(html),
+    });
+  } catch (error) {
+    const messageText = error instanceof Error ? error.message : "Unknown email error";
+    appendSystemLog({ category: "smtp", level: "error", message: "Template email failed", details: { error: messageText, template } });
+    throw error;
+  }
 }
 
 export async function sendHtmlEmail(payload: EmailPayload) {
@@ -116,13 +137,19 @@ export async function sendHtmlEmail(payload: EmailPayload) {
     return { ok: response.ok };
   }
 
-  return sendTemplateEmail({
-    to: payload.to,
-    template: "welcome",
-    subject: payload.subject,
-    html: payload.html,
-    text: payload.text,
-  });
+  try {
+    return await sendTemplateEmail({
+      to: payload.to,
+      template: "welcome",
+      subject: payload.subject,
+      html: payload.html,
+      text: payload.text,
+    });
+  } catch (error) {
+    const messageText = error instanceof Error ? error.message : "Unknown email error";
+    appendSystemLog({ category: "smtp", level: "error", message: "HTML email failed", details: { error: messageText } });
+    throw error;
+  }
 }
 
 export async function sendWelcomeEmail({

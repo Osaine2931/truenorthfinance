@@ -149,11 +149,11 @@ function DepositPage() {
         <SectionCard title="Secure payment flow">
           <div className="rounded-2xl border border-border/70 bg-secondary/70 p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-navy">
-              <CreditCard className="size-4 text-royal" /> Payment provider abstraction
+              <CreditCard className="size-4 text-royal" /> NOWPayments-only funding
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              The payment experience now generates a secure NOWPayments invoice through a Vercel
-              Function, keeping API credentials off the client and the UI consistent.
+              Funding is processed through NOWPayments only, keeping the deposit flow simple and
+              secure.
             </p>
             <div className="mt-4 space-y-2">
               {providers.map((provider) => (
@@ -175,11 +175,11 @@ function DepositPage() {
             </div>
             <div className="mt-4 rounded-xl border border-royal/20 bg-royal-soft p-3 text-sm text-navy">
               <div className="flex items-center gap-2 font-semibold">
-                <ShieldCheck className="size-4" /> NOWPayments-ready invoice flow.
+                <ShieldCheck className="size-4" /> Secure invoice flow.
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                When the required environment variables are present, invoices are created
-                server-side and the payment status is updated through the webhook.
+                Invoices are created server-side and wallet credits are applied automatically when
+                the webhook confirms a successful payment.
               </p>
             </div>
           </div>
@@ -188,8 +188,8 @@ function DepositPage() {
               <Bitcoin className="size-4 text-royal" /> Wallet funding (crypto)
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              The wallet funding experience remains available and is ready to work with a live
-              provider once you add credentials.
+              The wallet funding experience is live through NOWPayments and uses the configured
+              API credentials for invoice creation.
             </p>
           </div>
         </SectionCard>

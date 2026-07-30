@@ -1,4 +1,19 @@
 import { defineEventHandler, readBody, createError } from "h3";
+import { createClient } from "@supabase/supabase-js";
+
+function getSupabaseAdminClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Missing Supabase server credentials",
+    });
+  }
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 
 export default defineEventHandler(async (event) => {
   const method = event.node.req.method?.toUpperCase();
@@ -14,7 +29,29 @@ export default defineEventHandler(async (event) => {
   }
 
   if (action === "sign-up") {
-    return { ok: true, message: "Sign-up endpoint ready", body };
+    const email = String(body?.email ?? "").trim();
+    const password = String(body?.password ?? "");
+    if (!email || !password) {
+      throw createError({ statusCode: 400, statusMessage: "Email and password are required" });
+    }
+
+    const supabaseAdmin = getSupabaseAdminClient();
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: body?.meta ?? {},
+    });
+
+    if (error) {
+      throw createError({ statusCode: 400, statusMessage: error.message });
+    }
+
+    return {
+      ok: true,
+      user: data.user,
+      message: "Account created successfully",
+    };
   }
 
   if (action === "sign-out") {
