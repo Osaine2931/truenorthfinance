@@ -14,7 +14,9 @@ export function PageHeader({
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="font-display text-2xl font-semibold tracking-tight text-navy sm:text-3xl">{title}</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
+          {title}
+        </h1>
         {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
       {action}
@@ -111,7 +113,12 @@ export function StatusPill({ status }: { status: string }) {
         ? "bg-destructive/10 text-destructive"
         : "bg-warning/10 text-warning";
   return (
-    <span className={cn("rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide", tone)}>
+    <span
+      className={cn(
+        "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
+        tone,
+      )}
+    >
       {status}
     </span>
   );

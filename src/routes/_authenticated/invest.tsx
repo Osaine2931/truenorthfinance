@@ -1,7 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, TrendingUp, Lock, Calculator, Layers, ShieldCheck, Wallet, CircleDollarSign } from "lucide-react";
+import {
+  Sparkles,
+  TrendingUp,
+  Lock,
+  Calculator,
+  Layers,
+  ShieldCheck,
+  Wallet,
+  CircleDollarSign,
+} from "lucide-react";
 import {
   usePlans,
   useWallet,
@@ -25,13 +34,20 @@ export const Route = createFileRoute("/_authenticated/invest")({
   head: () => ({
     meta: [
       { title: "Invest — TrueNorth Financial" },
-      { name: "description", content: "Browse curated long-term investment plans and project your growth." },
+      {
+        name: "description",
+        content: "Browse curated long-term investment plans and project your growth.",
+      },
     ],
   }),
   component: Invest,
 });
 
-const periodLabel: Record<string, string> = { daily: "daily", weekly: "weekly", monthly: "monthly" };
+const periodLabel: Record<string, string> = {
+  daily: "daily",
+  weekly: "weekly",
+  monthly: "monthly",
+};
 
 function Invest() {
   const navigate = useNavigate();
@@ -81,7 +97,9 @@ function Invest() {
     }
     try {
       await createInvestment.mutateAsync({ plan: selected, amount });
-      toast.success(`Investment purchased successfully`, { description: `${formatCurrency(amount)} has been transferred from your wallet.` });
+      toast.success(`Investment purchased successfully`, {
+        description: `${formatCurrency(amount)} has been transferred from your wallet.`,
+      });
       setSelected(null);
       navigate({ to: "/my-investments" });
     } catch (err) {
@@ -91,7 +109,10 @@ function Invest() {
 
   return (
     <div className="animate-fade-up space-y-6">
-      <PageHeader title="Invest" subtitle="Curated long-term strategies, managed by TrueNorth Financial." />
+      <PageHeader
+        title="Invest"
+        subtitle="Curated long-term strategies, managed by TrueNorth Financial."
+      />
 
       {!unlocked && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4">
@@ -99,9 +120,14 @@ function Invest() {
             <Lock className="size-5" />
           </span>
           <p className="min-w-0 flex-1 text-sm">
-            Investing is locked until your first confirmed deposit of at least {formatCurrency(1000, 0)} is received. The welcome bonus is promotional and cannot be invested, withdrawn, or transferred.
+            Investing is locked until your first confirmed deposit of at least{" "}
+            {formatCurrency(1000, 0)} is received. The welcome bonus is promotional and cannot be
+            invested, withdrawn, or transferred.
           </p>
-          <Link to="/deposit" className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white">
+          <Link
+            to="/deposit"
+            className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white"
+          >
             Make a deposit
           </Link>
         </div>
@@ -173,7 +199,11 @@ function Invest() {
         </div>
       ) : (
         <SectionCard>
-          <EmptyState icon={Layers} title="No plans available" description="Please check back shortly." />
+          <EmptyState
+            icon={Layers}
+            title="No plans available"
+            description="Please check back shortly."
+          />
         </SectionCard>
       )}
 
@@ -187,14 +217,18 @@ function Invest() {
               <div>
                 <h2 className="font-display text-lg font-semibold text-navy">{selected.name}</h2>
                 <p className="text-xs text-muted-foreground">
-                  {Number(selected.roi_percent)}% {periodLabel[selected.roi_period]} · {selected.duration_days} days
+                  {Number(selected.roi_percent)}% {periodLabel[selected.roi_period]} ·{" "}
+                  {selected.duration_days} days
                 </p>
               </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[1fr_0.85fr]">
               <div className="space-y-4">
-                <Field label="Investment amount (USD)" hint={`Minimum ${formatCurrency(selected.min_amount, 0)} · Maximum ${selected.max_amount ? formatCurrency(selected.max_amount, 0) : "No limit"}`}>
+                <Field
+                  label="Investment amount (USD)"
+                  hint={`Minimum ${formatCurrency(selected.min_amount, 0)} · Maximum ${selected.max_amount ? formatCurrency(selected.max_amount, 0) : "No limit"}`}
+                >
                   <input
                     type="number"
                     value={amount}
@@ -222,9 +256,19 @@ function Invest() {
                   <div className="flex items-center gap-2 text-sm font-semibold text-royal">
                     <CircleDollarSign className="size-4" /> Expected maturity value
                   </div>
-                  <p className="mt-2 font-display text-2xl font-semibold text-royal">{formatCurrency(totalReturn)}</p>
+                  <p className="mt-2 font-display text-2xl font-semibold text-royal">
+                    {formatCurrency(totalReturn)}
+                  </p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Estimated profit: {formatCurrency(expected)} · Available balance: {formatCurrency(balance)}
+                    Estimated profit: {formatCurrency(expected)} · Available balance:{" "}
+                    {formatCurrency(balance)}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-card p-4 text-sm text-muted-foreground">
+                  <p className="font-semibold text-navy">Terms</p>
+                  <p className="mt-1">
+                    Your capital is committed for the full plan duration. Early withdrawals are not
+                    available and the expected return is based on the plan terms.
                   </p>
                 </div>
               </div>
@@ -234,32 +278,50 @@ function Invest() {
                   <Wallet className="size-4 text-royal" /> Wallet checks
                 </div>
                 {!unlocked ? (
-                  <p className="text-sm text-muted-foreground">Your wallet must be unlocked by a confirmed $1,000+ deposit before investing.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Your wallet must be unlocked by a confirmed deposit of at least{" "}
+                    {formatCurrency(1000, 0)} before investing.
+                  </p>
                 ) : !canAfford ? (
                   <div>
-                    <p className="text-sm font-semibold text-destructive">Your available balance is insufficient to purchase this investment.</p>
+                    <p className="text-sm font-semibold text-destructive">
+                      Your available wallet balance is insufficient.
+                    </p>
                     <button
                       type="button"
                       onClick={() => navigate({ to: "/deposit" })}
                       className={`${btnPrimary} mt-3 w-full`}
                     >
-                      Top up wallet
+                      TOP UP WALLET
                     </button>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Your available balance covers this investment. The purchase will deduct the amount immediately and create a new portfolio entry.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Your available balance covers this investment. The purchase will deduct the
+                    amount immediately and create a new portfolio entry.
+                  </p>
                 )}
                 <div className="rounded-xl bg-secondary/90 p-3 text-xs text-muted-foreground">
-                  <p>Terms and conditions: investments are subject to the plan duration, ROI schedule, and platform policies. Early withdrawals are not available.</p>
+                  <p>
+                    Terms and conditions: investments are subject to the plan duration, ROI
+                    schedule, and platform policies. Early withdrawals are not available.
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="mt-5 flex gap-2">
-              <button onClick={() => setSelected(null)} className="flex-1 rounded-xl border border-border py-2.5 text-sm font-semibold">
+              <button
+                onClick={() => setSelected(null)}
+                className="flex-1 rounded-xl border border-border py-2.5 text-sm font-semibold"
+              >
                 Cancel
               </button>
-              <button onClick={confirm} disabled={createInvestment.isPending || !canAfford || !unlocked} className={`${btnPrimary} flex-1`}>
+              <button
+                onClick={confirm}
+                disabled={createInvestment.isPending || !canAfford || !unlocked}
+                className={`${btnPrimary} flex-1`}
+              >
                 {createInvestment.isPending ? "Processing…" : "Confirm purchase"}
               </button>
             </div>

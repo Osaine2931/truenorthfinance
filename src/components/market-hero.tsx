@@ -29,7 +29,6 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
     let offset = 0;
     let last = performance.now();
     let raf = 0;
-    let nextCandleAt = 0;
 
     const makeCandle = (): Candle => {
       const drift = trend * 0.9 + (Math.random() - 0.5) * 2.4;

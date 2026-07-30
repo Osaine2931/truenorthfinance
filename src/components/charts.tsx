@@ -72,7 +72,11 @@ export function PerformanceChart({
           tickFormatter={(v) => formatCompact(v)}
           width={54}
         />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatCompact(v)} cursor={false} />
+        <Tooltip
+          contentStyle={tooltipStyle}
+          formatter={(v: number) => formatCompact(v)}
+          cursor={false}
+        />
         <Bar dataKey="invested" fill="var(--color-royal)" radius={[8, 8, 0, 0]} maxBarSize={26} />
         <Bar dataKey="profit" fill="oklch(0.86 0.07 235)" radius={[8, 8, 0, 0]} maxBarSize={26} />
       </BarChart>
@@ -88,7 +92,14 @@ export function AllocationChart({
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
-        <Pie data={data} dataKey="value" innerRadius="60%" outerRadius="88%" paddingAngle={3} stroke="none">
+        <Pie
+          data={data}
+          dataKey="value"
+          innerRadius="60%"
+          outerRadius="88%"
+          paddingAngle={3}
+          stroke="none"
+        >
           {data.map((d) => (
             <Cell key={d.name} fill={d.color} />
           ))}

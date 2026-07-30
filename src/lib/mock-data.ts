@@ -100,33 +100,118 @@ export const investmentPlans: InvestmentPlan[] = [
 ];
 
 export const activeInvestments = [
-  { id: "1", plan: "Prime Real Estate Fund", amount: 45000, progress: 68, roi: "+2.4%", status: "Active" },
-  { id: "2", plan: "Emerging Tech Venture", amount: 12800, progress: 12, roi: "+8.1%", status: "Premium" },
-  { id: "3", plan: "Blue Chip Reserve", amount: 25000, progress: 82, roi: "+1.2%", status: "Active" },
-  { id: "4", plan: "Sustainable Energy Fund", amount: 8000, progress: 44, roi: "+3.7%", status: "Active" },
+  {
+    id: "1",
+    plan: "Prime Real Estate Fund",
+    amount: 45000,
+    progress: 68,
+    roi: "+2.4%",
+    status: "Active",
+  },
+  {
+    id: "2",
+    plan: "Emerging Tech Venture",
+    amount: 12800,
+    progress: 12,
+    roi: "+8.1%",
+    status: "Premium",
+  },
+  {
+    id: "3",
+    plan: "Blue Chip Reserve",
+    amount: 25000,
+    progress: 82,
+    roi: "+1.2%",
+    status: "Active",
+  },
+  {
+    id: "4",
+    plan: "Sustainable Energy Fund",
+    amount: 8000,
+    progress: 44,
+    roi: "+3.7%",
+    status: "Active",
+  },
 ];
 
 export const recentTransactions = [
-  { id: "t1", type: "Dividend Credit", direction: "in" as const, amount: 4210.5, date: "May 22, 2025" },
-  { id: "t2", type: "Capital Call", direction: "out" as const, amount: 12000, date: "May 18, 2025" },
-  { id: "t3", type: "Wallet Deposit", direction: "in" as const, amount: 5000, date: "May 09, 2025" },
-  { id: "t4", type: "Referral Bonus", direction: "in" as const, amount: 320.8, date: "May 04, 2025" },
+  {
+    id: "t1",
+    type: "Dividend Credit",
+    direction: "in" as const,
+    amount: 4210.5,
+    date: "May 22, 2025",
+  },
+  {
+    id: "t2",
+    type: "Capital Call",
+    direction: "out" as const,
+    amount: 12000,
+    date: "May 18, 2025",
+  },
+  {
+    id: "t3",
+    type: "Wallet Deposit",
+    direction: "in" as const,
+    amount: 5000,
+    date: "May 09, 2025",
+  },
+  {
+    id: "t4",
+    type: "Referral Bonus",
+    direction: "in" as const,
+    amount: 320.8,
+    date: "May 04, 2025",
+  },
   { id: "t5", type: "Withdrawal", direction: "out" as const, amount: 2500, date: "Apr 28, 2025" },
-  { id: "t6", type: "Dividend Credit", direction: "in" as const, amount: 1840.0, date: "Apr 22, 2025" },
+  {
+    id: "t6",
+    type: "Dividend Credit",
+    direction: "in" as const,
+    amount: 1840.0,
+    date: "Apr 22, 2025",
+  },
 ];
 
 export const notifications = [
-  { id: "n1", title: "Dividend paid", body: "$4,210.50 credited from Prime Real Estate Fund.", time: "2h ago", unread: true },
-  { id: "n2", title: "New plan available", body: "Sustainable Energy Fund II is now open for subscription.", time: "1d ago", unread: true },
-  { id: "n3", title: "KYC verified", body: "Your identity has been verified. All limits unlocked.", time: "3d ago", unread: false },
+  {
+    id: "n1",
+    title: "Dividend paid",
+    body: "$4,210.50 credited from Prime Real Estate Fund.",
+    time: "2h ago",
+    unread: true,
+  },
+  {
+    id: "n2",
+    title: "New plan available",
+    body: "Sustainable Energy Fund II is now open for subscription.",
+    time: "1d ago",
+    unread: true,
+  },
+  {
+    id: "n3",
+    title: "KYC verified",
+    body: "Your identity has been verified. All limits unlocked.",
+    time: "3d ago",
+    unread: false,
+  },
 ];
 
 export function formatCurrency(n: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(n);
 }
 
 export function formatCompact(n: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 2 }).format(n);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 2,
+  }).format(n);
 }
 
 export const performanceSeries = [
@@ -141,8 +226,23 @@ export const performanceSeries = [
 ];
 
 export const recentActivities = [
-  { id: "a1", title: "Subscribed to Prime Real Estate Fund", meta: "$45,000 · Contract #PR-8821", time: "Today, 09:12" },
-  { id: "a2", title: "KYC documents approved", meta: "Identity verification complete", time: "Yesterday, 16:40" },
+  {
+    id: "a1",
+    title: "Subscribed to Prime Real Estate Fund",
+    meta: "$45,000 · Contract #PR-8821",
+    time: "Today, 09:12",
+  },
+  {
+    id: "a2",
+    title: "KYC documents approved",
+    meta: "Identity verification complete",
+    time: "Yesterday, 16:40",
+  },
   { id: "a3", title: "Withdrawal processed", meta: "$2,500 to •••• 4417", time: "May 21, 11:05" },
-  { id: "a4", title: "Referral joined", meta: "M. Adeyemi opened an account", time: "May 19, 08:31" },
+  {
+    id: "a4",
+    title: "Referral joined",
+    meta: "M. Adeyemi opened an account",
+    time: "May 19, 08:31",
+  },
 ];

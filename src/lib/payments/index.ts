@@ -1,4 +1,5 @@
-export type PaymentProviderKey = "flutterwave" | "paystack" | "coinbase-commerce" | "nowpayments" | "binance-pay";
+export type PaymentProviderKey =
+  "flutterwave" | "paystack" | "coinbase-commerce" | "nowpayments" | "binance-pay";
 
 export type PaymentProviderConfig = {
   key: PaymentProviderKey;

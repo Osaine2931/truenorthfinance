@@ -18,7 +18,11 @@ export function useActivities(limit = 8) {
     queryKey: ["activities", limit],
     queryFn: async () =>
       unwrap<Activity[]>(
-        await supabase.from("activities").select("*").order("created_at", { ascending: false }).limit(limit),
+        await supabase
+          .from("activities")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(limit),
       ),
   });
 }
@@ -29,7 +33,10 @@ export function buildPortfolioSeries(transactions: Transaction[], portfolioValue
   const months = Array.from({ length: 8 }, (_, i) => {
     const d = new Date();
     d.setMonth(d.getMonth() - (7 - i));
-    return { key: `${d.getFullYear()}-${d.getMonth()}`, month: d.toLocaleString("en-US", { month: "short" }) };
+    return {
+      key: `${d.getFullYear()}-${d.getMonth()}`,
+      month: d.toLocaleString("en-US", { month: "short" }),
+    };
   });
   let running = 0;
   const netByMonth = new Map<string, number>();

@@ -27,7 +27,13 @@ export type Announcement = Tables<"announcements">;
 export type SiteSetting = Tables<"site_settings">;
 export type AuditLog = Tables<"admin_audit_logs">;
 
-export function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
+export function unwrap<T>({
+  data,
+  error,
+}: {
+  data: T | null;
+  error: { message: string } | null;
+}): T {
   if (error) throw new Error(error.message);
   return (data ?? []) as T;
 }

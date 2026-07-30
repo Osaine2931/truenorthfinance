@@ -3,7 +3,16 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Mail, MessageCircle, LifeBuoy, Send } from "lucide-react";
 import { useCreateSupportTicket, useSupportTickets } from "@/lib/api";
-import { PageHeader, SectionCard, Field, inputClass, btnPrimary, EmptyState, RowsSkeleton } from "@/components/ui-kit";
+import {
+  PageHeader,
+  SectionCard,
+  Field,
+  inputClass,
+  btnPrimary,
+  EmptyState,
+  RowsSkeleton,
+} from "@/components/ui-kit";
+import { sanitizeInput } from "@/lib/security";
 
 export const Route = createFileRoute("/_authenticated/support")({
   head: () => ({ meta: [{ title: "Support — TrueNorth Financial" }] }),
@@ -19,7 +28,11 @@ function Support() {
 
   async function saveTicket() {
     try {
-      await createTicket.mutateAsync({ subject, message, priority });
+      await createTicket.mutateAsync({
+        subject: sanitizeInput(subject),
+        message: sanitizeInput(message),
+        priority,
+      });
       setSubject("");
       setMessage("");
       toast.success("Support ticket created");
@@ -50,10 +63,19 @@ function Support() {
       <SectionCard title="Create a support ticket">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Subject">
-            <input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputClass} placeholder="Need help with a withdrawal" />
+            <input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className={inputClass}
+              placeholder="Need help with a withdrawal"
+            />
           </Field>
           <Field label="Priority">
-            <select value={priority} onChange={(e) => setPriority(e.target.value)} className={inputClass}>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className={inputClass}
+            >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
@@ -61,30 +83,50 @@ function Support() {
           </Field>
         </div>
         <Field label="Message" hint="Include screenshots and transaction details where possible.">
-          <textarea value={message} onChange={(e) => setMessage(e.target.value)} className={`${inputClass} mt-1 min-h-28`} placeholder="Describe your issue or request" />
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className={`${inputClass} mt-1 min-h-28`}
+            placeholder="Describe your issue or request"
+          />
         </Field>
-        <button onClick={saveTicket} disabled={createTicket.isPending || !subject.trim() || !message.trim()} className={`${btnPrimary} mt-4`}>
+        <button
+          onClick={saveTicket}
+          disabled={createTicket.isPending || !subject.trim() || !message.trim()}
+          className={`${btnPrimary} mt-4`}
+        >
           <Send className="size-4" /> Create ticket
         </button>
       </SectionCard>
 
       <SectionCard title="Your tickets" bodyClassName="p-0">
         {tickets.isLoading ? (
-          <div className="p-5"><RowsSkeleton rows={3} /></div>
+          <div className="p-5">
+            <RowsSkeleton rows={3} />
+          </div>
         ) : tickets.data?.length ? (
           <ul>
             {tickets.data.map((ticket) => (
-              <li key={ticket.id} className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0">
+              <li
+                key={ticket.id}
+                className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0"
+              >
                 <div>
                   <p className="text-sm font-medium text-navy">{ticket.subject}</p>
                   <p className="text-xs text-muted-foreground">{ticket.message}</p>
                 </div>
-                <span className="rounded-full bg-royal-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-royal">{ticket.status}</span>
+                <span className="rounded-full bg-royal-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-royal">
+                  {ticket.status}
+                </span>
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyState icon={LifeBuoy} title="No tickets yet" description="Your support requests will appear here." />
+          <EmptyState
+            icon={LifeBuoy}
+            title="No tickets yet"
+            description="Your support requests will appear here."
+          />
         )}
       </SectionCard>
     </div>

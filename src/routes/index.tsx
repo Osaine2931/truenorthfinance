@@ -34,9 +34,15 @@ function Landing() {
             <BrandLockup />
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-            <a href="#plans" className="hover:text-foreground">Plans</a>
-            <a href="#why" className="hover:text-foreground">Why TrueNorth</a>
-            <a href="#security" className="hover:text-foreground">Security</a>
+            <a href="#plans" className="hover:text-foreground">
+              Plans
+            </a>
+            <a href="#why" className="hover:text-foreground">
+              Why TrueNorth
+            </a>
+            <a href="#security" className="hover:text-foreground">
+              Security
+            </a>
           </nav>
           <div className="flex items-center gap-2">
             <Link
@@ -99,8 +105,6 @@ function Landing() {
           </div>
         </section>
 
-
-
         <section id="why" className="border-y border-border/60 bg-card">
           <div className="mx-auto grid max-w-6xl gap-6 px-5 py-16 md:grid-cols-3">
             {[
@@ -147,7 +151,9 @@ function Landing() {
               { name: "Emerging Tech Venture", roi: "18–24% p.a.", risk: "High" },
             ].map((p) => (
               <div key={p.name} className="surface-card p-6">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">{p.risk} risk</p>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {p.risk} risk
+                </p>
                 <h3 className="mt-2 font-display text-2xl font-semibold text-navy">{p.name}</h3>
                 <p className="mt-6 text-3xl font-semibold text-royal">{p.roi}</p>
                 <p className="text-xs text-muted-foreground">Target annualised ROI</p>
@@ -162,8 +168,8 @@ function Landing() {
               A quieter way to build wealth.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/70">
-              Open an account in minutes. No noise, no day-trading — just long-term investment,
-              done properly.
+              Open an account in minutes. No noise, no day-trading — just long-term investment, done
+              properly.
             </p>
             <Link
               to="/auth"
@@ -180,7 +186,9 @@ function Landing() {
       <footer className="border-t border-border/60 bg-background">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 text-sm text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} TrueNorth Financial. All rights reserved.</p>
-          <p className="text-xs">Capital at risk. Past performance is not indicative of future returns.</p>
+          <p className="text-xs">
+            Capital at risk. Past performance is not indicative of future returns.
+          </p>
         </div>
       </footer>
     </div>

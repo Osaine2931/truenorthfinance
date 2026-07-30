@@ -23,7 +23,9 @@ export function useAdminUsers() {
   return useQuery({
     queryKey: ["admin", "users"],
     queryFn: async () =>
-      unwrap<Profile[]>(await supabase.from("profiles").select("*").order("created_at", { ascending: false })),
+      unwrap<Profile[]>(
+        await supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      ),
   });
 }
 
@@ -31,7 +33,9 @@ export function useAdminWallets() {
   return useQuery({
     queryKey: ["admin", "wallets"],
     queryFn: async () =>
-      unwrap<Wallet[]>(await supabase.from("wallets").select("*").order("created_at", { ascending: false })),
+      unwrap<Wallet[]>(
+        await supabase.from("wallets").select("*").order("created_at", { ascending: false }),
+      ),
   });
 }
 
@@ -39,7 +43,9 @@ export function useAdminDeposits() {
   return useQuery({
     queryKey: ["admin", "deposits"],
     queryFn: async () =>
-      unwrap<Deposit[]>(await supabase.from("deposits").select("*").order("created_at", { ascending: false })),
+      unwrap<Deposit[]>(
+        await supabase.from("deposits").select("*").order("created_at", { ascending: false }),
+      ),
   });
 }
 
@@ -58,7 +64,11 @@ export function useAdminTransactions() {
     queryKey: ["admin", "transactions"],
     queryFn: async () =>
       unwrap<Transaction[]>(
-        await supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(300),
+        await supabase
+          .from("transactions")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(300),
       ),
   });
 }
@@ -67,7 +77,9 @@ export function useAdminInvestments() {
   return useQuery({
     queryKey: ["admin", "investments"],
     queryFn: async () =>
-      unwrap(await supabase.from("investments").select("*").order("created_at", { ascending: false })),
+      unwrap(
+        await supabase.from("investments").select("*").order("created_at", { ascending: false }),
+      ),
   });
 }
 
@@ -75,7 +87,9 @@ export function useAdminReferrals() {
   return useQuery({
     queryKey: ["admin", "referrals"],
     queryFn: async () =>
-      unwrap<Referral[]>(await supabase.from("referrals").select("*").order("created_at", { ascending: false })),
+      unwrap<Referral[]>(
+        await supabase.from("referrals").select("*").order("created_at", { ascending: false }),
+      ),
   });
 }
 
@@ -101,7 +115,11 @@ export function useAuditLogs() {
     queryKey: ["admin", "audit"],
     queryFn: async () =>
       unwrap<AuditLog[]>(
-        await supabase.from("admin_audit_logs").select("*").order("created_at", { ascending: false }).limit(200),
+        await supabase
+          .from("admin_audit_logs")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(200),
       ),
   });
 }
@@ -139,7 +157,10 @@ export function useSetUserStatus() {
   const invalidate = useAdminInvalidate();
   return useMutation({
     mutationFn: async ({ user, status }: { user: Profile; status: UserStatus }) => {
-      const { error } = await supabase.from("profiles").update({ status }).eq("user_id", user.user_id);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ status })
+        .eq("user_id", user.user_id);
       if (error) throw new Error(error.message);
       await writeAudit({
         action: `Account ${status}`,
@@ -277,7 +298,13 @@ export function useAdjustWallet() {
 export function useSetReferralStatus() {
   const invalidate = useAdminInvalidate();
   return useMutation({
-    mutationFn: async ({ referral, status }: { referral: Referral; status: "active" | "suspended" }) => {
+    mutationFn: async ({
+      referral,
+      status,
+    }: {
+      referral: Referral;
+      status: "active" | "suspended";
+    }) => {
       const { error } = await supabase.from("referrals").update({ status }).eq("id", referral.id);
       if (error) throw new Error(error.message);
       await writeAudit({
@@ -355,7 +382,9 @@ export function useBroadcastNotification() {
       if (!title.trim() || !body.trim()) throw new Error("Title and message are required");
       let targets = userIds ?? [];
       if (!targets.length) {
-        const profiles = unwrap<Pick<Profile, "user_id">[]>(await supabase.from("profiles").select("user_id"));
+        const profiles = unwrap<Pick<Profile, "user_id">[]>(
+          await supabase.from("profiles").select("user_id"),
+        );
         targets = profiles.map((p) => p.user_id);
       }
       if (!targets.length) throw new Error("No recipients");
@@ -363,7 +392,11 @@ export function useBroadcastNotification() {
         .from("notifications")
         .insert(targets.map((user_id) => ({ user_id, title, body, kind })));
       if (error) throw new Error(error.message);
-      await writeAudit({ action: "Notification sent", reason: title, metadata: { recipients: targets.length } });
+      await writeAudit({
+        action: "Notification sent",
+        reason: title,
+        metadata: { recipients: targets.length },
+      });
       return targets.length;
     },
     onSuccess: invalidate,
@@ -447,7 +480,13 @@ export function useTogglePlan() {
 export function useReviewDeposit() {
   const invalidate = useAdminInvalidate();
   return useMutation({
-    mutationFn: async ({ deposit, status }: { deposit: Deposit; status: "approved" | "rejected" }) => {
+    mutationFn: async ({
+      deposit,
+      status,
+    }: {
+      deposit: Deposit;
+      status: "approved" | "rejected";
+    }) => {
       const { error } = await supabase.from("deposits").update({ status }).eq("id", deposit.id);
       if (error) throw new Error(error.message);
       if (status === "approved") {
@@ -486,8 +525,17 @@ export function useReviewDeposit() {
 export function useReviewWithdrawal() {
   const invalidate = useAdminInvalidate();
   return useMutation({
-    mutationFn: async ({ withdrawal, status }: { withdrawal: Withdrawal; status: "approved" | "rejected" }) => {
-      const { error } = await supabase.from("withdrawals").update({ status }).eq("id", withdrawal.id);
+    mutationFn: async ({
+      withdrawal,
+      status,
+    }: {
+      withdrawal: Withdrawal;
+      status: "approved" | "rejected";
+    }) => {
+      const { error } = await supabase
+        .from("withdrawals")
+        .update({ status })
+        .eq("id", withdrawal.id);
       if (error) throw new Error(error.message);
       if (status === "approved") {
         const { data: wallet } = await supabase
@@ -499,7 +547,10 @@ export function useReviewWithdrawal() {
           await supabase
             .from("wallets")
             .update({
-              available_balance: Math.max(Number(wallet.available_balance) - Number(withdrawal.amount), 0),
+              available_balance: Math.max(
+                Number(wallet.available_balance) - Number(withdrawal.amount),
+                0,
+              ),
             })
             .eq("user_id", withdrawal.user_id);
         }

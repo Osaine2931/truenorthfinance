@@ -1,9 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, UploadCloud, BellRing, KeyRound, MailPlus, UserCircle2 } from "lucide-react";
-import { useProfile, useUpdateProfile, useWallet, useKyc, useSubmitKyc, formatCurrency, formatDate } from "@/lib/api";
-import { PageHeader, SectionCard, Field, inputClass, btnPrimary, btnGhost } from "@/components/ui-kit";
+import {
+  Loader2,
+  ShieldCheck,
+  UploadCloud,
+  BellRing,
+  KeyRound,
+  MailPlus,
+  UserCircle2,
+} from "lucide-react";
+import {
+  useProfile,
+  useUpdateProfile,
+  useWallet,
+  useKyc,
+  useSubmitKyc,
+  formatCurrency,
+  formatDate,
+} from "@/lib/api";
+import {
+  PageHeader,
+  SectionCard,
+  Field,
+  inputClass,
+  btnPrimary,
+  btnGhost,
+} from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -68,10 +91,13 @@ function ProfilePage() {
             {initials}
           </div>
           <div className="min-w-0">
-            <p className="font-display text-xl font-semibold text-navy">{form.full_name || "Investor"}</p>
+            <p className="font-display text-xl font-semibold text-navy">
+              {form.full_name || "Investor"}
+            </p>
             <p className="truncate text-sm text-muted-foreground">{profile.data?.email}</p>
             <p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
-              <ShieldCheck className="size-3" /> Verified member since {formatDate(profile.data?.created_at)}
+              <ShieldCheck className="size-3" /> Verified member since{" "}
+              {formatDate(profile.data?.created_at)}
             </p>
           </div>
           <div className="ml-auto rounded-2xl bg-secondary px-4 py-3 text-right">
@@ -93,7 +119,11 @@ function ProfilePage() {
             />
           </Field>
           <Field label="Phone">
-            <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inputClass} />
+            <input
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              className={inputClass}
+            />
           </Field>
           <Field label="Country">
             <input
@@ -103,7 +133,11 @@ function ProfilePage() {
             />
           </Field>
           <Field label="Referral code">
-            <input value={profile.data?.referral_code ?? ""} readOnly className={`${inputClass} bg-secondary`} />
+            <input
+              value={profile.data?.referral_code ?? ""}
+              readOnly
+              className={`${inputClass} bg-secondary`}
+            />
           </Field>
         </div>
         <div className="mt-5 flex flex-wrap gap-3">
@@ -124,31 +158,55 @@ function ProfilePage() {
               <p className="text-sm font-semibold text-navy">KYC status: {kycStatus}</p>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Complete Level 1 for basic verification, Level 2 with a government ID, and Level 3 with a selfie.
+              Complete Level 1 for basic verification, Level 2 with a government ID, and Level 3
+              with a selfie.
             </p>
             <div className="mt-4 space-y-3">
               <Field label="Verification level">
-                <select value={kycLevel} onChange={(e) => setKycLevel(Number(e.target.value))} className={inputClass}>
+                <select
+                  value={kycLevel}
+                  onChange={(e) => setKycLevel(Number(e.target.value))}
+                  className={inputClass}
+                >
                   <option value={1}>Level 1 · Basic information</option>
                   <option value={2}>Level 2 · Government ID</option>
                   <option value={3}>Level 3 · Selfie verification</option>
                 </select>
               </Field>
               <Field label="Notes">
-                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={`${inputClass} min-h-24`} placeholder="Add supporting context for your verification" />
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className={`${inputClass} min-h-24`}
+                  placeholder="Add supporting context for your verification"
+                />
               </Field>
             </div>
-            <button onClick={submitVerification} disabled={submitKyc.isPending} className={`${btnPrimary} mt-4`}>
-              {submitKyc.isPending && <Loader2 className="size-4 animate-spin" />} Submit verification
+            <button
+              onClick={submitVerification}
+              disabled={submitKyc.isPending}
+              className={`${btnPrimary} mt-4`}
+            >
+              {submitKyc.isPending && <Loader2 className="size-4 animate-spin" />} Submit
+              verification
             </button>
           </div>
           <div className="space-y-3 rounded-2xl border border-border/70 bg-card p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-navy"><KeyRound className="size-4 text-royal" /> Security settings</div>
-            <div className="rounded-xl bg-secondary/70 p-3 text-sm text-muted-foreground">
-              Password updates, email verification, and notification preferences are managed from this secure profile area.
+            <div className="flex items-center gap-2 text-sm font-semibold text-navy">
+              <KeyRound className="size-4 text-royal" /> Security settings
             </div>
-            <div className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-sm text-muted-foreground"><BellRing className="size-4 text-royal" /> Alerts enabled for wallet, investment, and trade updates</div>
-            <div className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-sm text-muted-foreground"><UploadCloud className="size-4 text-royal" /> Upload support images from the support center</div>
+            <div className="rounded-xl bg-secondary/70 p-3 text-sm text-muted-foreground">
+              Password updates, email verification, and notification preferences are managed from
+              this secure profile area.
+            </div>
+            <div className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-sm text-muted-foreground">
+              <BellRing className="size-4 text-royal" /> Alerts enabled for wallet, investment, and
+              trade updates
+            </div>
+            <div className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-sm text-muted-foreground">
+              <UploadCloud className="size-4 text-royal" /> Upload support images from the support
+              center
+            </div>
           </div>
         </div>
       </SectionCard>

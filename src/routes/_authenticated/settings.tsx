@@ -29,18 +29,29 @@ function Settings() {
 
   return (
     <div className="animate-fade-up space-y-6">
-      <PageHeader title="Settings" subtitle="Manage your workspace preferences and security controls." />
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your workspace preferences and security controls."
+      />
       <SectionCard title="Preferences">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Theme">
-            <select value={theme} onChange={(e) => updateTheme(e.target.value as "light" | "dark" | "system")} className={inputClass}>
+            <select
+              value={theme}
+              onChange={(e) => updateTheme(e.target.value as "light" | "dark" | "system")}
+              className={inputClass}
+            >
               <option value="light">Light</option>
               <option value="dark">Dark</option>
               <option value="system">System</option>
             </select>
           </Field>
           <Field label="Language">
-            <select value={language} onChange={(e) => setLanguage(e.target.value)} className={inputClass}>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className={inputClass}
+            >
               <option value="en">English</option>
               <option value="fr">Français</option>
               <option value="de">Deutsch</option>
@@ -50,8 +61,18 @@ function Settings() {
       </SectionCard>
       <SectionCard title="Notifications & security">
         <div className="space-y-3">
-          <Toggle label="Email notifications" desc="Receive updates about wallet changes and investment progress." value={emails} onChange={setEmails} />
-          <Toggle label="Security alerts" desc="Get notified for password changes and unusual activity." value={security} onChange={setSecurity} />
+          <Toggle
+            label="Email notifications"
+            desc="Receive updates about wallet changes and investment progress."
+            value={emails}
+            onChange={setEmails}
+          />
+          <Toggle
+            label="Security alerts"
+            desc="Get notified for password changes and unusual activity."
+            value={security}
+            onChange={setSecurity}
+          />
         </div>
       </SectionCard>
     </div>

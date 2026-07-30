@@ -25,7 +25,10 @@ export const Route = createFileRoute("/_authenticated/withdraw")({
   head: () => ({
     meta: [
       { title: "Withdraw — TrueNorth Financial" },
-      { name: "description", content: "Request a cryptocurrency payout from your TrueNorth wallet." },
+      {
+        name: "description",
+        content: "Request a cryptocurrency payout from your TrueNorth wallet.",
+      },
     ],
   }),
   component: WithdrawPage,
@@ -73,17 +76,22 @@ function WithdrawPage() {
 
   return (
     <div className="animate-fade-up space-y-6">
-      <PageHeader title="Withdraw" subtitle="Payouts are sent in cryptocurrency to your own wallet." />
+      <PageHeader
+        title="Withdraw"
+        subtitle="Payouts are sent in cryptocurrency to your own wallet."
+      />
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
         <SectionCard title="Request a payout">
           <div className="mb-4 rounded-2xl bg-secondary p-4">
             <p className="text-xs text-muted-foreground">Withdrawable balance</p>
-            <p className="font-display text-3xl font-semibold text-navy">{formatCurrency(withdrawable)}</p>
+            <p className="font-display text-3xl font-semibold text-navy">
+              {formatCurrency(withdrawable)}
+            </p>
             <p className="mt-1 flex items-start gap-1.5 text-[11px] text-muted-foreground">
               <Info className="mt-0.5 size-3 shrink-0" />
-              Excludes the {formatCurrency(wallet.data?.welcome_bonus, 0)} welcome bonus, which is promotional and
-              not withdrawable.
+              Excludes the {formatCurrency(wallet.data?.welcome_bonus, 0)} welcome bonus, which is
+              promotional and not withdrawable.
             </p>
           </div>
 
@@ -96,11 +104,15 @@ function WithdrawPage() {
                     key={m.id}
                     onClick={() => setMethodId(m.id)}
                     className={`rounded-2xl border p-3 text-left transition ${
-                      active ? "border-royal bg-royal-soft" : "border-border bg-card hover:border-royal/50"
+                      active
+                        ? "border-royal bg-royal-soft"
+                        : "border-border bg-card hover:border-royal/50"
                     }`}
                   >
                     <p className="text-sm font-semibold text-navy">{m.symbol}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">{m.network ?? m.name}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      {m.network ?? m.name}
+                    </p>
                   </button>
                 );
               })}
@@ -118,9 +130,18 @@ function WithdrawPage() {
               />
             </Field>
             <Field label="Destination wallet address">
-              <input value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} placeholder="Your wallet address" />
+              <input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className={inputClass}
+                placeholder="Your wallet address"
+              />
             </Field>
-            <button onClick={submit} disabled={createWithdrawal.isPending} className={`${btnPrimary} w-full`}>
+            <button
+              onClick={submit}
+              disabled={createWithdrawal.isPending}
+              className={`${btnPrimary} w-full`}
+            >
               {createWithdrawal.isPending && <Loader2 className="size-4 animate-spin" />}
               Request withdrawal
             </button>
@@ -135,12 +156,17 @@ function WithdrawPage() {
           ) : withdrawals.data?.length ? (
             <ul>
               {withdrawals.data.map((w) => (
-                <li key={w.id} className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0">
+                <li
+                  key={w.id}
+                  className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0"
+                >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-navy">
                       {formatCurrency(w.amount)} · {w.crypto_symbol}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">{formatDateTime(w.created_at)}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {formatDateTime(w.created_at)}
+                    </p>
                   </div>
                   <StatusPill status={w.status} />
                 </li>

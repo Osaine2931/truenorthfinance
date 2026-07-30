@@ -48,7 +48,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Something went wrong</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground">
+          Something went wrong
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           We couldn't load this page. Please try again or head back home.
         </p>
@@ -89,7 +91,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "TrueNorth Financial — Private Wealth Investment Platform" },
       {
         property: "og:description",
-        content: "Grow your capital across curated funds with transparent ROI and private-banker service.",
+        content:
+          "Grow your capital across curated funds with transparent ROI and private-banker service.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -18,7 +18,9 @@ export type EmailMessage = {
 };
 
 export interface EmailProvider {
-  send(message: EmailMessage): Promise<{ ok: boolean; provider: string; id?: string; skipped?: boolean }>;
+  send(
+    message: EmailMessage,
+  ): Promise<{ ok: boolean; provider: string; id?: string; skipped?: boolean }>;
 }
 
 export type EmailServiceConfig = {
@@ -27,7 +29,10 @@ export type EmailServiceConfig = {
 };
 
 export class EmailService {
-  constructor(private provider: EmailProvider, private config: EmailServiceConfig = {}) {}
+  constructor(
+    private provider: EmailProvider,
+    private config: EmailServiceConfig = {},
+  ) {}
 
   async send(message: EmailMessage) {
     if (!this.config.enabled) {

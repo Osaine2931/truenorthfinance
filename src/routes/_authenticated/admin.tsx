@@ -76,7 +76,10 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Admin — TrueNorth Financial" },
-      { name: "description", content: "Administer users, wallets, deposits, withdrawals and investment plans." },
+      {
+        name: "description",
+        content: "Administer users, wallets, deposits, withdrawals and investment plans.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -124,7 +127,10 @@ function AdminPage() {
 
   return (
     <div className="animate-fade-up space-y-6">
-      <PageHeader title="Admin Dashboard" subtitle="Operate TrueNorth Financial without touching code." />
+      <PageHeader
+        title="Admin Dashboard"
+        subtitle="Operate TrueNorth Financial without touching code."
+      />
 
       <div className="flex gap-2 overflow-x-auto pb-1">
         {TABS.map((t) => (
@@ -132,7 +138,9 @@ function AdminPage() {
             key={t}
             onClick={() => setTab(t)}
             className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-              tab === t ? "bg-royal text-white" : "border border-border bg-card text-muted-foreground"
+              tab === t
+                ? "bg-royal text-white"
+                : "border border-border bg-card text-muted-foreground"
             }`}
           >
             {t}
@@ -183,16 +191,43 @@ function Overview() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Total users" value={String(users.data?.length ?? 0)} icon={Users} tone="primary" />
-        <StatCard label="Active users" value={String(activeUsers)} icon={CheckCircle2} tone="success" />
-        <StatCard label="Total deposits" value={formatCurrency(totalDeposited)} icon={ArrowDownToLine} />
-        <StatCard label="Total withdrawals" value={formatCurrency(paidWithdrawals)} icon={ArrowUpFromLine} />
+        <StatCard
+          label="Total users"
+          value={String(users.data?.length ?? 0)}
+          icon={Users}
+          tone="primary"
+        />
+        <StatCard
+          label="Active users"
+          value={String(activeUsers)}
+          icon={CheckCircle2}
+          tone="success"
+        />
+        <StatCard
+          label="Total deposits"
+          value={formatCurrency(totalDeposited)}
+          icon={ArrowDownToLine}
+        />
+        <StatCard
+          label="Total withdrawals"
+          value={formatCurrency(paidWithdrawals)}
+          icon={ArrowUpFromLine}
+        />
         <StatCard label="Total invested" value={formatCurrency(totalInvested)} icon={Layers} />
-        <StatCard label="Platform revenue" value={formatCurrency(revenue)} icon={BarChart3} tone="primary" />
+        <StatCard
+          label="Platform revenue"
+          value={formatCurrency(revenue)}
+          icon={BarChart3}
+          tone="primary"
+        />
         <StatCard label="Held balances" value={formatCurrency(totalBalances)} icon={WalletIcon} />
         <StatCard label="Welcome bonuses" value={formatCurrency(totalBonus)} icon={Gift} />
         <StatCard label="Pending deposits" value={String(pendingDeposits)} icon={ArrowDownToLine} />
-        <StatCard label="Pending withdrawals" value={String(pendingWithdrawals)} icon={ArrowUpFromLine} />
+        <StatCard
+          label="Pending withdrawals"
+          value={String(pendingWithdrawals)}
+          icon={ArrowUpFromLine}
+        />
         <StatCard label="Referrals" value={String(referrals.data?.length ?? 0)} icon={Users} />
         <StatCard
           label="Active plans"
@@ -222,12 +257,17 @@ function UsersTab() {
     const list = users.data ?? [];
     if (!q) return list;
     return list.filter(
-      (u) => (u.full_name ?? "").toLowerCase().includes(q) || (u.email ?? "").toLowerCase().includes(q),
+      (u) =>
+        (u.full_name ?? "").toLowerCase().includes(q) || (u.email ?? "").toLowerCase().includes(q),
     );
   }, [users.data, query]);
 
   return (
-    <SectionCard title="User management" description="Search, edit, activate, ban or remove members." bodyClassName="p-0">
+    <SectionCard
+      title="User management"
+      description="Search, edit, activate, ban or remove members."
+      bodyClassName="p-0"
+    >
       <div className="border-b border-border/60 p-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -253,7 +293,10 @@ function UsersTab() {
             return (
               <li key={u.id} className="border-b border-border/60 px-5 py-4 last:border-0">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <button className="min-w-0 text-left" onClick={() => setOpenId(open ? null : u.id)}>
+                  <button
+                    className="min-w-0 text-left"
+                    onClick={() => setOpenId(open ? null : u.id)}
+                  >
                     <p className="truncate font-medium text-navy">{u.full_name ?? "Investor"}</p>
                     <p className="truncate text-xs text-muted-foreground">
                       {u.email} · ref {u.referral_code}
@@ -262,7 +305,8 @@ function UsersTab() {
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusPill status={status} />
                     <span className="text-xs text-muted-foreground">
-                      {formatCurrency(w?.available_balance)} · bonus {formatCurrency(w?.welcome_bonus, 0)}
+                      {formatCurrency(w?.available_balance)} · bonus{" "}
+                      {formatCurrency(w?.welcome_bonus, 0)}
                     </span>
                     <button onClick={() => setOpenId(open ? null : u.id)} className={btnGhost}>
                       {open ? "Close" : "Manage"}
@@ -275,7 +319,10 @@ function UsersTab() {
                     <UserDetailsForm
                       user={u}
                       onSave={(patch) =>
-                        updateUser.mutate({ user: u, patch }, { onSuccess: () => toast.success("Profile updated") })
+                        updateUser.mutate(
+                          { user: u, patch },
+                          { onSuccess: () => toast.success("Profile updated") },
+                        )
                       }
                     />
                     <WalletAdjustForm user={u} />
@@ -285,7 +332,10 @@ function UsersTab() {
                           key={s}
                           disabled={status === s}
                           onClick={() =>
-                            setStatus.mutate({ user: u, status: s }, { onSuccess: () => toast.success(`Account ${s}`) })
+                            setStatus.mutate(
+                              { user: u, status: s },
+                              { onSuccess: () => toast.success(`Account ${s}`) },
+                            )
                           }
                           className={`${btnGhost} disabled:opacity-40`}
                         >
@@ -301,10 +351,14 @@ function UsersTab() {
                       ))}
                       <button
                         onClick={() => {
-                          if (!window.confirm(`Permanently delete ${u.email}? This cannot be undone.`)) return;
+                          if (
+                            !window.confirm(`Permanently delete ${u.email}? This cannot be undone.`)
+                          )
+                            return;
                           deleteUser.mutate(u, {
                             onSuccess: () => toast.success("Account deleted"),
-                            onError: (e) => toast.error(e instanceof Error ? e.message : "Delete failed"),
+                            onError: (e) =>
+                              toast.error(e instanceof Error ? e.message : "Delete failed"),
                           });
                         }}
                         className="inline-flex items-center gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive"
@@ -319,7 +373,11 @@ function UsersTab() {
           })}
         </ul>
       ) : (
-        <EmptyState icon={Users} title="No members found" description="Try a different search term." />
+        <EmptyState
+          icon={Users}
+          title="No members found"
+          description="Try a different search term."
+        />
       )}
     </SectionCard>
   );
@@ -341,19 +399,37 @@ function UserDetailsForm({
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Profile details</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Profile details
+      </p>
       <div className="grid gap-2 sm:grid-cols-2">
         <Field label="Full name">
-          <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className={inputClass} />
+          <input
+            value={form.full_name}
+            onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+            className={inputClass}
+          />
         </Field>
         <Field label="Email">
-          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputClass} />
+          <input
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            className={inputClass}
+          />
         </Field>
         <Field label="Phone">
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inputClass} />
+          <input
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            className={inputClass}
+          />
         </Field>
         <Field label="Country">
-          <input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className={inputClass} />
+          <input
+            value={form.country}
+            onChange={(e) => setForm({ ...form, country: e.target.value })}
+            className={inputClass}
+          />
         </Field>
       </div>
       <button onClick={() => onSave(form)} className={btnGhost}>
@@ -372,10 +448,16 @@ function WalletAdjustForm({ user }: { user: Profile }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Manual wallet adjustment</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Manual wallet adjustment
+      </p>
       <div className="grid gap-2 sm:grid-cols-2">
         <Field label="Fund">
-          <select value={field} onChange={(e) => setField(e.target.value as WalletField)} className={inputClass}>
+          <select
+            value={field}
+            onChange={(e) => setField(e.target.value as WalletField)}
+            className={inputClass}
+          >
             <option value="available_balance">Available balance</option>
             <option value="welcome_bonus">Welcome bonus</option>
           </select>
@@ -391,10 +473,19 @@ function WalletAdjustForm({ user }: { user: Profile }) {
           </select>
         </Field>
         <Field label="Amount (USD)">
-          <input type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} className={inputClass} />
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+            className={inputClass}
+          />
         </Field>
         <Field label="Reason" hint="Recorded in the audit log">
-          <input value={reason} onChange={(e) => setReason(e.target.value)} className={inputClass} />
+          <input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className={inputClass}
+          />
         </Field>
       </div>
       <button
@@ -428,7 +519,11 @@ function WalletsTab() {
   const nameFor = (uid: string) => (users.data ?? []).find((u) => u.user_id === uid);
 
   return (
-    <SectionCard title="Wallets" description="Every member wallet with deposited funds and promotional bonus." bodyClassName="p-0">
+    <SectionCard
+      title="Wallets"
+      description="Every member wallet with deposited funds and promotional bonus."
+      bodyClassName="p-0"
+    >
       {wallets.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
@@ -438,7 +533,10 @@ function WalletsTab() {
           {wallets.data.map((w) => {
             const u = nameFor(w.user_id);
             return (
-              <li key={w.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+              <li
+                key={w.id}
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0"
+              >
                 <div className="min-w-0">
                   <p className="truncate font-medium text-navy">{u?.full_name ?? "Investor"}</p>
                   <p className="truncate text-xs text-muted-foreground">{u?.email}</p>
@@ -481,8 +579,16 @@ function DepositsTab() {
   const rows = (deposits.data ?? []).filter((d) => filter === "all" || d.status === filter);
 
   return (
-    <SectionCard title="Deposits" description="Approving a deposit credits the member's wallet." bodyClassName="p-0">
-      <FilterBar value={filter} onChange={setFilter} options={["all", "pending", "approved", "rejected"]} />
+    <SectionCard
+      title="Deposits"
+      description="Approving a deposit credits the member's wallet."
+      bodyClassName="p-0"
+    >
+      <FilterBar
+        value={filter}
+        onChange={setFilter}
+        options={["all", "pending", "approved", "rejected"]}
+      />
       {deposits.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
@@ -490,7 +596,10 @@ function DepositsTab() {
       ) : rows.length ? (
         <ul>
           {rows.map((d) => (
-            <li key={d.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+            <li
+              key={d.id}
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0"
+            >
               <div className="min-w-0">
                 <p className="font-medium text-navy">
                   {formatCurrency(d.amount)} · {d.crypto_symbol} {d.network ? `(${d.network})` : ""}
@@ -505,7 +614,10 @@ function DepositsTab() {
                   <>
                     <button
                       onClick={() =>
-                        review.mutate({ deposit: d, status: "approved" }, { onSuccess: () => toast.success("Deposit approved") })
+                        review.mutate(
+                          { deposit: d, status: "approved" },
+                          { onSuccess: () => toast.success("Deposit approved") },
+                        )
                       }
                       className="rounded-lg bg-success/10 px-3 py-1.5 text-xs font-semibold text-success"
                     >
@@ -513,7 +625,10 @@ function DepositsTab() {
                     </button>
                     <button
                       onClick={() =>
-                        review.mutate({ deposit: d, status: "rejected" }, { onSuccess: () => toast.success("Deposit rejected") })
+                        review.mutate(
+                          { deposit: d, status: "rejected" },
+                          { onSuccess: () => toast.success("Deposit rejected") },
+                        )
                       }
                       className="rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive"
                     >
@@ -568,7 +683,11 @@ function WithdrawalsTab() {
 
   return (
     <SectionCard title="Withdrawals" bodyClassName="p-0">
-      <FilterBar value={filter} onChange={setFilter} options={["all", "pending", "approved", "rejected"]} />
+      <FilterBar
+        value={filter}
+        onChange={setFilter}
+        options={["all", "pending", "approved", "rejected"]}
+      />
       {withdrawals.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
@@ -576,7 +695,10 @@ function WithdrawalsTab() {
       ) : rows.length ? (
         <ul>
           {rows.map((w) => (
-            <li key={w.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+            <li
+              key={w.id}
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0"
+            >
               <div className="min-w-0">
                 <p className="font-medium text-navy">
                   {formatCurrency(w.amount)} · {w.crypto_symbol}
@@ -589,7 +711,10 @@ function WithdrawalsTab() {
                   <>
                     <button
                       onClick={() =>
-                        review.mutate({ withdrawal: w, status: "approved" }, { onSuccess: () => toast.success("Withdrawal approved") })
+                        review.mutate(
+                          { withdrawal: w, status: "approved" },
+                          { onSuccess: () => toast.success("Withdrawal approved") },
+                        )
                       }
                       className="rounded-lg bg-success/10 px-3 py-1.5 text-xs font-semibold text-success"
                     >
@@ -597,7 +722,10 @@ function WithdrawalsTab() {
                     </button>
                     <button
                       onClick={() =>
-                        review.mutate({ withdrawal: w, status: "rejected" }, { onSuccess: () => toast.success("Withdrawal rejected") })
+                        review.mutate(
+                          { withdrawal: w, status: "rejected" },
+                          { onSuccess: () => toast.success("Withdrawal rejected") },
+                        )
                       }
                       className="rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive"
                     >
@@ -637,7 +765,7 @@ function PlansTab() {
   const savePlan = useSavePlan();
   const deletePlan = useDeletePlan();
   const togglePlan = useTogglePlan();
-  const [draft, setDraft] = useState<(typeof emptyPlan) & { id?: string }>(emptyPlan);
+  const [draft, setDraft] = useState<typeof emptyPlan & { id?: string }>(emptyPlan);
 
   async function save() {
     if (!draft.name.trim()) {
@@ -658,7 +786,11 @@ function PlansTab() {
       <SectionCard title={draft.id ? "Edit plan" : "Create plan"}>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Name">
-            <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={inputClass} />
+            <input
+              value={draft.name}
+              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              className={inputClass}
+            />
           </Field>
           <Field label="Category">
             <input
@@ -695,7 +827,9 @@ function PlansTab() {
           <Field label="ROI period">
             <select
               value={draft.roi_period}
-              onChange={(e) => setDraft({ ...draft, roi_period: e.target.value as Plan["roi_period"] })}
+              onChange={(e) =>
+                setDraft({ ...draft, roi_period: e.target.value as Plan["roi_period"] })
+              }
               className={inputClass}
             >
               <option value="daily">Daily</option>
@@ -765,7 +899,10 @@ function PlansTab() {
         ) : plans.data?.length ? (
           <ul>
             {plans.data.map((p) => (
-              <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+              <li
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0"
+              >
                 <div className="min-w-0">
                   <p className="truncate font-medium text-navy">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -804,7 +941,9 @@ function PlansTab() {
                     <Power className="size-3.5" />
                   </button>
                   <button
-                    onClick={() => deletePlan.mutate(p.id, { onSuccess: () => toast.success("Plan deleted") })}
+                    onClick={() =>
+                      deletePlan.mutate(p.id, { onSuccess: () => toast.success("Plan deleted") })
+                    }
                     className="grid size-8 place-items-center rounded-lg bg-destructive/10 text-destructive"
                     aria-label="Delete plan"
                   >
@@ -841,7 +980,11 @@ function TransactionsTab() {
 
   return (
     <SectionCard title="Platform transactions" bodyClassName="p-0">
-      <FilterBar value={status} onChange={setStatus} options={["all", "pending", "completed", "failed"]} />
+      <FilterBar
+        value={status}
+        onChange={setStatus}
+        options={["all", "pending", "completed", "failed"]}
+      />
       <div className="border-b border-border/60 p-4">
         <input
           value={query}
@@ -857,7 +1000,10 @@ function TransactionsTab() {
       ) : rows.length ? (
         <ul>
           {rows.map((t) => (
-            <li key={t.id} className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0">
+            <li
+              key={t.id}
+              className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0"
+            >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-navy">{t.type}</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -865,7 +1011,9 @@ function TransactionsTab() {
                 </p>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}>
+                <p
+                  className={`text-sm font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}
+                >
                   {formatCurrency(t.amount)}
                 </p>
                 <StatusPill status={t.status} />
@@ -889,10 +1037,15 @@ function ReferralsTab() {
   const reward = useRewardReferral();
   const [amounts, setAmounts] = useState<Record<string, number>>({});
 
-  const emailFor = (uid: string) => (users.data ?? []).find((u) => u.user_id === uid)?.email ?? "Member";
+  const emailFor = (uid: string) =>
+    (users.data ?? []).find((u) => u.user_id === uid)?.email ?? "Member";
 
   return (
-    <SectionCard title="Referral programme" description="Reward or suspend referral relationships." bodyClassName="p-0">
+    <SectionCard
+      title="Referral programme"
+      description="Reward or suspend referral relationships."
+      bodyClassName="p-0"
+    >
       {referrals.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
@@ -902,9 +1055,14 @@ function ReferralsTab() {
           {referrals.data.map((r) => {
             const status = (r.status ?? "active") as "active" | "suspended";
             return (
-              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+              <li
+                key={r.id}
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0"
+              >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-navy">{emailFor(r.referrer_id)}</p>
+                  <p className="truncate text-sm font-medium text-navy">
+                    {emailFor(r.referrer_id)}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">
                     referred {emailFor(r.referred_id)} · earned {formatCurrency(r.earnings)}
                   </p>
@@ -926,7 +1084,8 @@ function ReferralsTab() {
                             toast.success("Referral rewarded");
                             setAmounts({ ...amounts, [r.id]: 0 });
                           },
-                          onError: (e) => toast.error(e instanceof Error ? e.message : "Reward failed"),
+                          onError: (e) =>
+                            toast.error(e instanceof Error ? e.message : "Reward failed"),
                         },
                       )
                     }
@@ -970,15 +1129,31 @@ function NotificationsTab() {
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <SectionCard title="Send notification" description="Leave recipients empty to notify every member.">
+      <SectionCard
+        title="Send notification"
+        description="Leave recipients empty to notify every member."
+      >
         <Field label="Title">
-          <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} />
+          <input
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className={inputClass}
+          />
         </Field>
         <Field label="Message">
-          <textarea rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} className={inputClass} />
+          <textarea
+            rows={4}
+            value={form.body}
+            onChange={(e) => setForm({ ...form, body: e.target.value })}
+            className={inputClass}
+          />
         </Field>
         <Field label="Type">
-          <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })} className={inputClass}>
+          <select
+            value={form.kind}
+            onChange={(e) => setForm({ ...form, kind: e.target.value })}
+            className={inputClass}
+          >
             <option value="info">Information</option>
             <option value="success">Success</option>
             <option value="warning">Maintenance / warning</option>
@@ -1002,11 +1177,16 @@ function NotificationsTab() {
           }
           className={`${btnPrimary} mt-4`}
         >
-          <Send className="size-4" /> {selected.length ? `Send to ${selected.length} selected` : "Send to all members"}
+          <Send className="size-4" />{" "}
+          {selected.length ? `Send to ${selected.length} selected` : "Send to all members"}
         </button>
       </SectionCard>
 
-      <SectionCard title="Recipients" description="Optional — pick specific members." bodyClassName="p-0">
+      <SectionCard
+        title="Recipients"
+        description="Optional — pick specific members."
+        bodyClassName="p-0"
+      >
         {users.isLoading ? (
           <div className="p-5">
             <RowsSkeleton />
@@ -1014,10 +1194,19 @@ function NotificationsTab() {
         ) : (
           <ul className="max-h-[420px] overflow-y-auto">
             {(users.data ?? []).map((u) => (
-              <li key={u.id} className="flex items-center gap-3 border-b border-border/60 px-5 py-3 last:border-0">
-                <input type="checkbox" checked={selected.includes(u.user_id)} onChange={() => toggle(u.user_id)} />
+              <li
+                key={u.id}
+                className="flex items-center gap-3 border-b border-border/60 px-5 py-3 last:border-0"
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.includes(u.user_id)}
+                  onChange={() => toggle(u.user_id)}
+                />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-navy">{u.full_name ?? "Investor"}</p>
+                  <p className="truncate text-sm font-medium text-navy">
+                    {u.full_name ?? "Investor"}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">{u.email}</p>
                 </div>
               </li>
@@ -1040,10 +1229,19 @@ function AnnouncementsTab() {
     <div className="grid gap-4 lg:grid-cols-2">
       <SectionCard title="New announcement">
         <Field label="Title">
-          <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} />
+          <input
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className={inputClass}
+          />
         </Field>
         <Field label="Message">
-          <textarea rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} className={inputClass} />
+          <textarea
+            rows={4}
+            value={form.body}
+            onChange={(e) => setForm({ ...form, body: e.target.value })}
+            className={inputClass}
+          />
         </Field>
         <button
           onClick={() =>
@@ -1066,7 +1264,9 @@ function AnnouncementsTab() {
               <li key={a.id} className="border-b border-border/60 px-5 py-4 last:border-0">
                 <p className="font-medium text-navy">{a.title}</p>
                 <p className="text-sm text-muted-foreground">{a.body}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">{formatDateTime(a.created_at)}</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {formatDateTime(a.created_at)}
+                </p>
               </li>
             ))}
           </ul>
@@ -1083,7 +1283,11 @@ function AnnouncementsTab() {
 function AuditTab() {
   const logs = useAuditLogs();
   return (
-    <SectionCard title="Administrator audit log" description="Every manual action, who performed it and why." bodyClassName="p-0">
+    <SectionCard
+      title="Administrator audit log"
+      description="Every manual action, who performed it and why."
+      bodyClassName="p-0"
+    >
       {logs.isLoading ? (
         <div className="p-5">
           <RowsSkeleton />
@@ -1091,7 +1295,10 @@ function AuditTab() {
       ) : logs.data?.length ? (
         <ul>
           {logs.data.map((l) => (
-            <li key={l.id} className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0">
+            <li
+              key={l.id}
+              className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 px-5 py-4 last:border-0"
+            >
               <div className="min-w-0">
                 <p className="text-sm font-medium text-navy">{l.action}</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -1100,7 +1307,9 @@ function AuditTab() {
                 </p>
               </div>
               <div className="text-right">
-                {l.amount != null && <p className="text-sm font-semibold text-navy">{formatCurrency(l.amount)}</p>}
+                {l.amount != null && (
+                  <p className="text-sm font-semibold text-navy">{formatCurrency(l.amount)}</p>
+                )}
                 <p className="text-[11px] text-muted-foreground">{formatDateTime(l.created_at)}</p>
               </div>
             </li>

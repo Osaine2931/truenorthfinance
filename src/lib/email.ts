@@ -22,11 +22,17 @@ type EmailPayload = {
 };
 
 function getEnvValue(name: string) {
-  return (typeof import.meta !== "undefined" && import.meta.env ? import.meta.env[name] : undefined) ?? undefined;
+  return (
+    (typeof import.meta !== "undefined" && import.meta.env ? import.meta.env[name] : undefined) ??
+    undefined
+  );
 }
 
 function createTextFromHtml(html: string) {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 const emailService = new EmailService(new ConsoleEmailProvider(), defaultEmailServiceConfig);
@@ -66,7 +72,8 @@ export async function sendTemplateEmail({
 
 export async function sendHtmlEmail(payload: EmailPayload) {
   const resendKey = getEnvValue("VITE_RESEND_API_KEY") || getEnvValue("RESEND_API_KEY");
-  const resendFrom = getEnvValue("VITE_RESEND_FROM") || "TrueNorth Financial <noreply@truenorthfinance.com>";
+  const resendFrom =
+    getEnvValue("VITE_RESEND_FROM") || "TrueNorth Financial <noreply@truenorthfinance.com>";
   const webhookUrl = getEnvValue("VITE_EMAIL_WEBHOOK_URL") || getEnvValue("EMAIL_WEBHOOK_URL");
 
   if (resendKey) {
@@ -122,7 +129,9 @@ export async function sendWelcomeEmail({
   fullName?: string;
   createdAt?: string | Date;
 }) {
-  const prettyDate = createdAt ? new Date(createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "just now";
+  const prettyDate = createdAt
+    ? new Date(createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    : "just now";
   const displayName = fullName?.trim() || "investor";
   const html = renderWelcomeTemplate({ name: displayName, date: prettyDate });
 
@@ -150,7 +159,9 @@ export async function sendLoginAlertEmail({
   ipAddress?: string;
 }) {
   const displayName = fullName?.trim() || "investor";
-  const prettyDate = loginAt ? new Date(loginAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "just now";
+  const prettyDate = loginAt
+    ? new Date(loginAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    : "just now";
   const html = renderLoginTemplate({
     date: prettyDate,
     device: userAgent || "Unknown device",
@@ -168,17 +179,47 @@ export async function sendLoginAlertEmail({
   });
 }
 
-export async function sendPasswordResetEmail({ email, resetLink }: { email: string; resetLink: string }) {
+export async function sendPasswordResetEmail({
+  email,
+  resetLink,
+}: {
+  email: string;
+  resetLink: string;
+}) {
   const html = renderPasswordResetTemplate({ link: resetLink });
-  return sendTemplateEmail({ to: email, template: "password-reset", subject: "Reset your TrueNorth password", html, text: "Use the secure link to reset your password." });
+  return sendTemplateEmail({
+    to: email,
+    template: "password-reset",
+    subject: "Reset your TrueNorth password",
+    html,
+    text: "Use the secure link to reset your password.",
+  });
 }
 
-export async function sendVerificationEmail({ email, verifyLink }: { email: string; verifyLink: string }) {
+export async function sendVerificationEmail({
+  email,
+  verifyLink,
+}: {
+  email: string;
+  verifyLink: string;
+}) {
   const html = renderVerificationTemplate({ link: verifyLink });
-  return sendTemplateEmail({ to: email, template: "email-verification", subject: "Verify your email address", html, text: "Verify your email to continue." });
+  return sendTemplateEmail({
+    to: email,
+    template: "email-verification",
+    subject: "Verify your email address",
+    html,
+    text: "Verify your email to continue.",
+  });
 }
 
-export async function sendSecurityAlertEmail({ email, subject }: { email: string; subject: string }) {
+export async function sendSecurityAlertEmail({
+  email,
+  subject,
+}: {
+  email: string;
+  subject: string;
+}) {
   const html = renderSecurityAlertTemplate({ subject });
   return sendTemplateEmail({ to: email, template: "security-alert", subject, html, text: subject });
 }
@@ -195,15 +236,45 @@ export async function sendWalletAdjustmentEmail({
   reason: string;
 }) {
   const html = renderAdminWalletAdjustmentTemplate({ action, amount, reason });
-  return sendTemplateEmail({ to: email, template: "admin-wallet-adjustment", subject: action, html, text: `${action}: ${amount}` });
+  return sendTemplateEmail({
+    to: email,
+    template: "admin-wallet-adjustment",
+    subject: action,
+    html,
+    text: `${action}: ${amount}`,
+  });
 }
 
-export async function sendDepositApprovedEmail({ email, amount }: { email: string; amount: string }) {
+export async function sendDepositApprovedEmail({
+  email,
+  amount,
+}: {
+  email: string;
+  amount: string;
+}) {
   const html = renderDepositApprovedTemplate({ amount });
-  return sendTemplateEmail({ to: email, template: "deposit-approved", subject: "Deposit approved", html, text: `Your deposit of ${amount} was approved.` });
+  return sendTemplateEmail({
+    to: email,
+    template: "deposit-approved",
+    subject: "Deposit approved",
+    html,
+    text: `Your deposit of ${amount} was approved.`,
+  });
 }
 
-export async function sendWithdrawalApprovedEmail({ email, amount }: { email: string; amount: string }) {
+export async function sendWithdrawalApprovedEmail({
+  email,
+  amount,
+}: {
+  email: string;
+  amount: string;
+}) {
   const html = renderWithdrawalApprovedTemplate({ amount });
-  return sendTemplateEmail({ to: email, template: "withdrawal-approved", subject: "Withdrawal approved", html, text: `Your withdrawal of ${amount} was approved.` });
+  return sendTemplateEmail({
+    to: email,
+    template: "withdrawal-approved",
+    subject: "Withdrawal approved",
+    html,
+    text: `Your withdrawal of ${amount} was approved.`,
+  });
 }
