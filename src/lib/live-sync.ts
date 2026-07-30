@@ -13,7 +13,18 @@ export function useLiveDataSync() {
     };
 
     const refresh = () => {
-      invalidate(["wallet", "transactions", "activities", "investments", "notifications", "deposits", "withdrawals", "profile", "referrals", "kyc"]);
+      invalidate([
+        "wallet",
+        "transactions",
+        "activities",
+        "investments",
+        "notifications",
+        "deposits",
+        "withdrawals",
+        "profile",
+        "referrals",
+        "kyc",
+      ]);
     };
 
     const interval = window.setInterval(refresh, 15000);
@@ -23,9 +34,17 @@ export function useLiveDataSync() {
     channel.on("postgres_changes", { event: "*", schema: "public", table: "deposits" }, refresh);
     channel.on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh);
     channel.on("postgres_changes", { event: "*", schema: "public", table: "investments" }, refresh);
-    channel.on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, refresh);
+    channel.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "transactions" },
+      refresh,
+    );
     channel.on("postgres_changes", { event: "*", schema: "public", table: "activities" }, refresh);
-    channel.on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, refresh);
+    channel.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "notifications" },
+      refresh,
+    );
     void channel.subscribe();
 
     return () => {
@@ -41,12 +60,17 @@ export function useInvestmentAutomation() {
 
   useEffect(() => {
     async function runAutomation() {
-      const { data: investments, error } = await supabase.from("investments").select("*").eq("status", "active");
+      const { data: investments, error } = await supabase
+        .from("investments")
+        .select("*")
+        .eq("status", "active");
       if (error) return;
 
       for (const investment of investments ?? []) {
         const start = new Date(investment.started_at).getTime();
-        const end = investment.ends_at ? new Date(investment.ends_at).getTime() : start + 86400000 * 30;
+        const end = investment.ends_at
+          ? new Date(investment.ends_at).getTime()
+          : start + 86400000 * 30;
         const total = Math.max(1, end - start);
         const elapsed = Math.min(total, Date.now() - start);
         const progress = Math.max(0, Math.min(100, (elapsed / total) * 100));
@@ -55,7 +79,11 @@ export function useInvestmentAutomation() {
         const matured = Date.now() >= end;
 
         if (matured) {
-          const { data: wallet } = await supabase.from("wallets").select("*").eq("user_id", investment.user_id).maybeSingle();
+          const { data: wallet } = await supabase
+            .from("wallets")
+            .select("*")
+            .eq("user_id", investment.user_id)
+            .maybeSingle();
           if (wallet) {
             const nextAvailable = Number(wallet.available_balance ?? 0) + expectedProfit;
             const nextTotalProfit = Number(wallet.total_profit ?? 0) + expectedProfit;
@@ -92,7 +120,10 @@ export function useInvestmentAutomation() {
             kind: "success",
           });
         } else {
-          await supabase.from("investments").update({ profit_earned: currentProfit }).eq("id", investment.id);
+          await supabase
+            .from("investments")
+            .update({ profit_earned: currentProfit })
+            .eq("id", investment.id);
         }
       }
 

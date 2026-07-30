@@ -9,7 +9,11 @@ export function useWallet() {
     queryKey: ["wallet"],
     queryFn: async () => {
       const uid = await currentUserId();
-      const { data, error } = await supabase.from("wallets").select("*").eq("user_id", uid).maybeSingle();
+      const { data, error } = await supabase
+        .from("wallets")
+        .select("*")
+        .eq("user_id", uid)
+        .maybeSingle();
       if (error) throw new Error(error.message);
       return data as Wallet | null;
     },
@@ -20,7 +24,9 @@ export function useCryptoMethods() {
   return useQuery({
     queryKey: ["crypto-methods"],
     queryFn: async () =>
-      unwrap(await supabase.from("crypto_methods").select("*").eq("is_active", true).order("sort_order")),
+      unwrap(
+        await supabase.from("crypto_methods").select("*").eq("is_active", true).order("sort_order"),
+      ),
   });
 }
 
@@ -36,7 +42,9 @@ export function useWithdrawals() {
   return useQuery({
     queryKey: ["withdrawals"],
     queryFn: async () =>
-      unwrap(await supabase.from("withdrawals").select("*").order("created_at", { ascending: false })),
+      unwrap(
+        await supabase.from("withdrawals").select("*").order("created_at", { ascending: false }),
+      ),
   });
 }
 
@@ -106,7 +114,8 @@ export function useCreateDeposit() {
         },
       };
     },
-    onSuccess: () => invalidate(["deposits", "transactions", "activities", "wallet", "notifications"]),
+    onSuccess: () =>
+      invalidate(["deposits", "transactions", "activities", "wallet", "notifications"]),
   });
 }
 

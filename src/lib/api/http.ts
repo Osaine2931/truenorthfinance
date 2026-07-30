@@ -40,7 +40,11 @@ export async function insert<T>(table: string, payload: Record<string, unknown>)
   return backend.insert<T>(table, payload);
 }
 
-export async function update<T>(table: string, payload: Record<string, unknown>, options?: BackendSelectOptions) {
+export async function update<T>(
+  table: string,
+  payload: Record<string, unknown>,
+  options?: BackendSelectOptions,
+) {
   return backend.update<T>(table, payload, options);
 }
 

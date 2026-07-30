@@ -33,7 +33,11 @@ export function useDeleteNotification() {
   return useMutation({
     mutationFn: async (id: string) => {
       const uid = await currentUserId();
-      const { error } = await supabase.from("notifications").delete().eq("id", id).eq("user_id", uid);
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", uid);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => invalidate(["notifications"]),

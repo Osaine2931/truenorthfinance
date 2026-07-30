@@ -1,8 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Check, Lock, Bitcoin, Loader2, CreditCard, ShieldCheck, QrCode, Clock3, CircleDollarSign } from "lucide-react";
-import { useCryptoMethods, useDeposits, useWallet, useCreateDeposit, formatCurrency, formatDateTime, MIN_DEPOSIT } from "@/lib/api";
+import {
+  Copy,
+  Check,
+  Lock,
+  Bitcoin,
+  Loader2,
+  CreditCard,
+  ShieldCheck,
+  QrCode,
+  Clock3,
+  CircleDollarSign,
+} from "lucide-react";
+import {
+  useCryptoMethods,
+  useDeposits,
+  useWallet,
+  useCreateDeposit,
+  formatCurrency,
+  formatDateTime,
+  MIN_DEPOSIT,
+} from "@/lib/api";
 import { getPaymentProviders } from "@/lib/payments";
 import {
   PageHeader,
@@ -19,7 +38,11 @@ export const Route = createFileRoute("/_authenticated/deposit")({
   head: () => ({
     meta: [
       { title: "Payments — TrueNorth Financial" },
-      { name: "description", content: "Prepare wallet funding through the payments architecture for future gateway integration." },
+      {
+        name: "description",
+        content:
+          "Prepare wallet funding through the payments architecture for future gateway integration.",
+      },
     ],
   }),
   component: DepositPage,
@@ -61,7 +84,10 @@ function DepositPage() {
   useEffect(() => {
     if (!invoice?.expiresAt) return;
     const updateCountdown = () => {
-      const remaining = Math.max(0, Math.floor((new Date(invoice.expiresAt!).getTime() - Date.now()) / 1000));
+      const remaining = Math.max(
+        0,
+        Math.floor((new Date(invoice.expiresAt!).getTime() - Date.now()) / 1000),
+      );
       setCountdown(remaining);
     };
     updateCountdown();
@@ -113,7 +139,8 @@ function DepositPage() {
         <div className="flex items-center gap-3 rounded-2xl border border-royal/25 bg-royal-soft p-4 text-sm">
           <Lock className="size-5 shrink-0 text-royal" />
           <p>
-            Your first confirmed deposit of at least {formatCurrency(MIN_DEPOSIT, 0)} unlocks all investment plans.
+            Your first confirmed deposit of at least {formatCurrency(MIN_DEPOSIT, 0)} unlocks all
+            investment plans.
           </p>
         </div>
       )}
@@ -125,16 +152,22 @@ function DepositPage() {
               <CreditCard className="size-4 text-royal" /> Payment provider abstraction
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              The payment experience now generates a secure NOWPayments invoice through a Vercel Function, keeping API credentials off the client and the UI consistent.
+              The payment experience now generates a secure NOWPayments invoice through a Vercel
+              Function, keeping API credentials off the client and the UI consistent.
             </p>
             <div className="mt-4 space-y-2">
               {providers.map((provider) => (
-                <div key={provider.key} className="flex items-center justify-between rounded-xl border border-border/70 bg-card px-3 py-2 text-sm">
+                <div
+                  key={provider.key}
+                  className="flex items-center justify-between rounded-xl border border-border/70 bg-card px-3 py-2 text-sm"
+                >
                   <div>
                     <p className="font-medium text-navy">{provider.label}</p>
                     <p className="text-xs text-muted-foreground">{provider.description}</p>
                   </div>
-                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${provider.enabled ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${provider.enabled ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}
+                  >
                     {provider.enabled ? "active" : "pending"}
                   </span>
                 </div>
@@ -144,14 +177,20 @@ function DepositPage() {
               <div className="flex items-center gap-2 font-semibold">
                 <ShieldCheck className="size-4" /> NOWPayments-ready invoice flow.
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">When the required environment variables are present, invoices are created server-side and the payment status is updated through the webhook.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                When the required environment variables are present, invoices are created
+                server-side and the payment status is updated through the webhook.
+              </p>
             </div>
           </div>
           <div className="mt-4 rounded-2xl border border-border/70 bg-card p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-navy">
               <Bitcoin className="size-4 text-royal" /> Wallet funding (crypto)
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">The wallet funding experience remains available and is ready to work with a live provider once you add credentials.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              The wallet funding experience remains available and is ready to work with a live
+              provider once you add credentials.
+            </p>
           </div>
         </SectionCard>
 
@@ -167,11 +206,15 @@ function DepositPage() {
                     key={m.id}
                     onClick={() => setMethodId(m.id)}
                     className={`rounded-2xl border p-3 text-left transition ${
-                      active ? "border-royal bg-royal-soft" : "border-border bg-card hover:border-royal/50"
+                      active
+                        ? "border-royal bg-royal-soft"
+                        : "border-border bg-card hover:border-royal/50"
                     }`}
                   >
                     <p className="text-sm font-semibold text-navy">{m.symbol}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">{m.network ?? m.name}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      {m.network ?? m.name}
+                    </p>
                   </button>
                 );
               })}
@@ -184,7 +227,10 @@ function DepositPage() {
                 <p className="text-xs text-muted-foreground">
                   {method.name} deposit address ({method.network})
                 </p>
-                <p className="mt-1 text-[11px] text-muted-foreground">Supported for deposits only: Bitcoin, Ethereum, USDT TRC20, USDT ERC20, USDT BEP20, BNB, and Solana.</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Supported for deposits only: Bitcoin, Ethereum, USDT TRC20, USDT ERC20, USDT
+                  BEP20, BNB, and Solana.
+                </p>
                 <div className="mt-2 flex items-center gap-2">
                   <code className="min-w-0 flex-1 truncate rounded-xl bg-card px-3 py-2 text-xs">
                     {invoice?.paymentAddress || method.wallet_address}
@@ -219,10 +265,22 @@ function DepositPage() {
                   </button>
                 ))}
               </div>
-              <Field label="Transaction hash (optional)" hint="Adding the hash speeds up confirmation.">
-                <input value={txHash} onChange={(e) => setTxHash(e.target.value)} className={inputClass} placeholder="0x…" />
+              <Field
+                label="Transaction hash (optional)"
+                hint="Adding the hash speeds up confirmation."
+              >
+                <input
+                  value={txHash}
+                  onChange={(e) => setTxHash(e.target.value)}
+                  className={inputClass}
+                  placeholder="0x…"
+                />
               </Field>
-              <button onClick={submit} disabled={createDeposit.isPending} className={`${btnPrimary} w-full`}>
+              <button
+                onClick={submit}
+                disabled={createDeposit.isPending}
+                className={`${btnPrimary} w-full`}
+              >
                 {createDeposit.isPending && <Loader2 className="size-4 animate-spin" />}
                 Generate NOWPayments invoice
               </button>
@@ -234,7 +292,9 @@ function DepositPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-royal">Invoice created</p>
-                  <p className="font-display text-xl font-semibold text-navy">{formatCurrency(invoice.amount, 0)} · {invoice.crypto}</p>
+                  <p className="font-display text-xl font-semibold text-navy">
+                    {formatCurrency(invoice.amount, 0)} · {invoice.crypto}
+                  </p>
                 </div>
                 <div className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-royal">
                   {invoice.status}
@@ -242,28 +302,52 @@ function DepositPage() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl bg-white/70 p-3 text-sm">
-                  <div className="flex items-center gap-2 font-semibold text-navy"><CircleDollarSign className="size-4 text-royal" /> Deposit amount</div>
+                  <div className="flex items-center gap-2 font-semibold text-navy">
+                    <CircleDollarSign className="size-4 text-royal" /> Deposit amount
+                  </div>
                   <p className="mt-1 text-muted-foreground">{formatCurrency(invoice.amount, 0)}</p>
                 </div>
                 <div className="rounded-xl bg-white/70 p-3 text-sm">
-                  <div className="flex items-center gap-2 font-semibold text-navy"><Clock3 className="size-4 text-royal" /> Countdown</div>
-                  <p className="mt-1 text-muted-foreground">{Math.floor(countdown / 60)}m {countdown % 60}s</p>
+                  <div className="flex items-center gap-2 font-semibold text-navy">
+                    <Clock3 className="size-4 text-royal" /> Countdown
+                  </div>
+                  <p className="mt-1 text-muted-foreground">
+                    {Math.floor(countdown / 60)}m {countdown % 60}s
+                  </p>
                 </div>
               </div>
               <div className="rounded-xl bg-white/70 p-3 text-sm">
-                <div className="flex items-center gap-2 font-semibold text-navy"><QrCode className="size-4 text-royal" /> Crypto amount</div>
-                <p className="mt-1 text-muted-foreground">{invoice.cryptoAmount} {invoice.crypto}</p>
+                <div className="flex items-center gap-2 font-semibold text-navy">
+                  <QrCode className="size-4 text-royal" /> Crypto amount
+                </div>
+                <p className="mt-1 text-muted-foreground">
+                  {invoice.cryptoAmount} {invoice.crypto}
+                </p>
               </div>
               {invoice.qrCodeUrl ? (
-                <img src={invoice.qrCodeUrl} alt="QR code" className="mx-auto h-40 w-40 rounded-2xl border border-border bg-white p-2" />
+                <img
+                  src={invoice.qrCodeUrl}
+                  alt="QR code"
+                  className="mx-auto h-40 w-40 rounded-2xl border border-border bg-white p-2"
+                />
               ) : null}
               <div className="rounded-xl border border-border/70 bg-card/70 p-3 text-xs text-muted-foreground">
                 <p>Payment address: {invoice.paymentAddress}</p>
                 <p className="mt-1">Invoice ID: {invoice.invoiceId}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Link to="/dashboard" className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-navy">Back to dashboard</Link>
-                <button onClick={() => setInvoice(null)} className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-navy">Dismiss</button>
+                <Link
+                  to="/dashboard"
+                  className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-navy"
+                >
+                  Back to dashboard
+                </Link>
+                <button
+                  onClick={() => setInvoice(null)}
+                  className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-navy"
+                >
+                  Dismiss
+                </button>
               </div>
             </div>
           )}
@@ -277,7 +361,10 @@ function DepositPage() {
           ) : deposits.data?.length ? (
             <ul>
               {deposits.data.map((d) => (
-                <li key={d.id} className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0">
+                <li
+                  key={d.id}
+                  className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3.5 last:border-0"
+                >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-navy">
                       {formatCurrency(d.amount)} · {d.crypto_symbol}
@@ -289,7 +376,11 @@ function DepositPage() {
               ))}
             </ul>
           ) : (
-            <EmptyState icon={Bitcoin} title="No deposits yet" description="Your crypto deposits will appear here." />
+            <EmptyState
+              icon={Bitcoin}
+              title="No deposits yet"
+              description="Your crypto deposits will appear here."
+            />
           )}
         </SectionCard>
       </div>

@@ -11,17 +11,34 @@ export interface BackendSelectOptions {
 }
 
 export interface BackendAdapter {
-  currentUser(): Promise<{ id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null>;
+  currentUser(): Promise<{
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+  } | null>;
   currentUserId(): Promise<string>;
   signIn(email: string, password: string): Promise<unknown>;
   signUp(email: string, password: string, meta?: Record<string, unknown>): Promise<unknown>;
   signOut(): Promise<void>;
   requestPasswordReset(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
-  select<T>(table: string, options?: BackendSelectOptions): Promise<{ data: T[] | null; error: BackendError | null }>;
-  maybeSingle<T>(table: string, options?: BackendSelectOptions): Promise<{ data: T | null; error: BackendError | null }>;
-  insert<T>(table: string, payload: Record<string, unknown>): Promise<{ data: T | null; error: BackendError | null }>;
-  update<T>(table: string, payload: Record<string, unknown>, options?: BackendSelectOptions): Promise<{ data: T | null; error: BackendError | null }>;
+  select<T>(
+    table: string,
+    options?: BackendSelectOptions,
+  ): Promise<{ data: T[] | null; error: BackendError | null }>;
+  maybeSingle<T>(
+    table: string,
+    options?: BackendSelectOptions,
+  ): Promise<{ data: T | null; error: BackendError | null }>;
+  insert<T>(
+    table: string,
+    payload: Record<string, unknown>,
+  ): Promise<{ data: T | null; error: BackendError | null }>;
+  update<T>(
+    table: string,
+    payload: Record<string, unknown>,
+    options?: BackendSelectOptions,
+  ): Promise<{ data: T | null; error: BackendError | null }>;
   delete(table: string, options?: BackendSelectOptions): Promise<{ error: BackendError | null }>;
 }
 
@@ -124,7 +141,11 @@ class SupabaseBackendAdapter implements BackendAdapter {
     return { data: data as T | null, error: error ? { message: error.message } : null };
   }
 
-  async update<T>(table: string, payload: Record<string, unknown>, options: BackendSelectOptions = {}) {
+  async update<T>(
+    table: string,
+    payload: Record<string, unknown>,
+    options: BackendSelectOptions = {},
+  ) {
     let query = db.from(table).update(payload);
     if (options.filters) {
       for (const filter of options.filters) {
@@ -163,7 +184,9 @@ class HttpBackendAdapter implements BackendAdapter {
   }
 
   async currentUser() {
-    const payload = await this.request<{ user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null }>("/api/me");
+    const payload = await this.request<{
+      user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null;
+    }>("/api/me");
     return payload.user ?? null;
   }
 
@@ -174,11 +197,17 @@ class HttpBackendAdapter implements BackendAdapter {
   }
 
   async signIn(email: string, password: string) {
-    return this.request("/api/auth/sign-in", { method: "POST", body: JSON.stringify({ email, password }) });
+    return this.request("/api/auth/sign-in", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
   }
 
   async signUp(email: string, password: string, meta?: Record<string, unknown>) {
-    return this.request("/api/auth/sign-up", { method: "POST", body: JSON.stringify({ email, password, meta }) });
+    return this.request("/api/auth/sign-up", {
+      method: "POST",
+      body: JSON.stringify({ email, password, meta }),
+    });
   }
 
   async signOut() {
@@ -186,11 +215,17 @@ class HttpBackendAdapter implements BackendAdapter {
   }
 
   async requestPasswordReset(email: string) {
-    await this.request("/api/auth/request-password-reset", { method: "POST", body: JSON.stringify({ email }) });
+    await this.request("/api/auth/request-password-reset", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
   }
 
   async updatePassword(password: string) {
-    await this.request("/api/auth/update-password", { method: "POST", body: JSON.stringify({ password }) });
+    await this.request("/api/auth/update-password", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    });
   }
 
   async select<T>(_table: string, _options: BackendSelectOptions = {}) {
@@ -205,7 +240,11 @@ class HttpBackendAdapter implements BackendAdapter {
     return { data: null as T | null, error: null };
   }
 
-  async update<T>(_table: string, _payload: Record<string, unknown>, _options: BackendSelectOptions = {}) {
+  async update<T>(
+    _table: string,
+    _payload: Record<string, unknown>,
+    _options: BackendSelectOptions = {},
+  ) {
     return { data: null as T | null, error: null };
   }
 
@@ -215,9 +254,17 @@ class HttpBackendAdapter implements BackendAdapter {
 }
 
 function getConfiguredBackendAdapter(): BackendAdapter {
-  const mode = (import.meta.env.VITE_TRUENORTH_BACKEND_MODE ?? process.env.TRUENORTH_BACKEND_MODE ?? "supabase").toLowerCase();
+  const mode = (
+    import.meta.env.VITE_TRUENORTH_BACKEND_MODE ??
+    process.env.TRUENORTH_BACKEND_MODE ??
+    "supabase"
+  ).toLowerCase();
   if (mode === "http") {
-    const baseUrl = (import.meta.env.VITE_TRUENORTH_API_BASE_URL ?? process.env.TRUENORTH_API_BASE_URL ?? "").trim();
+    const baseUrl = (
+      import.meta.env.VITE_TRUENORTH_API_BASE_URL ??
+      process.env.TRUENORTH_API_BASE_URL ??
+      ""
+    ).trim();
     if (baseUrl) return new HttpBackendAdapter(baseUrl);
   }
   return new SupabaseBackendAdapter();
@@ -226,5 +273,11 @@ function getConfiguredBackendAdapter(): BackendAdapter {
 export const backend = getConfiguredBackendAdapter();
 
 export function isHttpBackendEnabled() {
-  return (import.meta.env.VITE_TRUENORTH_BACKEND_MODE ?? process.env.TRUENORTH_BACKEND_MODE ?? "supabase").toLowerCase() === "http";
+  return (
+    (
+      import.meta.env.VITE_TRUENORTH_BACKEND_MODE ??
+      process.env.TRUENORTH_BACKEND_MODE ??
+      "supabase"
+    ).toLowerCase() === "http"
+  );
 }

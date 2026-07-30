@@ -7,7 +7,10 @@ export const Route = createFileRoute("/_authenticated/transactions")({
   head: () => ({
     meta: [
       { title: "Transactions — TrueNorth Financial" },
-      { name: "description", content: "Full ledger of deposits, withdrawals, investments and returns." },
+      {
+        name: "description",
+        content: "Full ledger of deposits, withdrawals, investments and returns.",
+      },
     ],
   }),
   component: TransactionsPage,
@@ -34,7 +37,9 @@ function TransactionsPage() {
                 <div className="flex min-w-0 items-center gap-3">
                   <span
                     className={`grid size-10 shrink-0 place-items-center rounded-xl ${
-                      t.direction === "in" ? "bg-success/10 text-success" : "bg-royal-soft text-royal"
+                      t.direction === "in"
+                        ? "bg-success/10 text-success"
+                        : "bg-royal-soft text-royal"
                     }`}
                   >
                     {t.direction === "in" ? (
@@ -51,7 +56,9 @@ function TransactionsPage() {
                   </div>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className={`font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}>
+                  <p
+                    className={`font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}
+                  >
                     {t.direction === "in" ? "+" : "−"}
                     {formatCurrency(t.amount)}
                   </p>
@@ -61,7 +68,11 @@ function TransactionsPage() {
             ))}
           </ul>
         ) : (
-          <EmptyState icon={Receipt} title="No transactions yet" description="Fund your account to get started." />
+          <EmptyState
+            icon={Receipt}
+            title="No transactions yet"
+            description="Fund your account to get started."
+          />
         )}
       </SectionCard>
     </div>

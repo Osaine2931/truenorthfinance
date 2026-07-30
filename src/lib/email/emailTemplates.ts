@@ -22,7 +22,17 @@ export function renderWelcomeTemplate({ name, date }: { name: string; date: stri
   `;
 }
 
-export function renderLoginTemplate({ date, device, browser, ip }: { date: string; device: string; browser: string; ip: string }) {
+export function renderLoginTemplate({
+  date,
+  device,
+  browser,
+  ip,
+}: {
+  date: string;
+  device: string;
+  browser: string;
+  ip: string;
+}) {
   return `
     <div style="font-family:Inter,Arial,sans-serif;background:#f8fafc;padding:24px;">
       <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #dbeafe;">
@@ -94,7 +104,15 @@ export function renderSecurityAlertTemplate({ subject }: { subject: string }) {
   `;
 }
 
-export function renderAdminWalletAdjustmentTemplate({ action, amount, reason }: { action: string; amount: string; reason: string }) {
+export function renderAdminWalletAdjustmentTemplate({
+  action,
+  amount,
+  reason,
+}: {
+  action: string;
+  amount: string;
+  reason: string;
+}) {
   return `
     <div style="font-family:Inter,Arial,sans-serif;background:#f8fafc;padding:24px;">
       <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #dbeafe;">

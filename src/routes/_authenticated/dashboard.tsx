@@ -29,13 +29,23 @@ import {
   BONUS_NOTICE,
 } from "@/lib/api";
 import { PortfolioChart, PerformanceChart, AllocationChart } from "@/components/charts";
-import { PageHeader, SectionCard, StatCard, StatusPill, EmptyState, RowsSkeleton } from "@/components/ui-kit";
+import {
+  PageHeader,
+  SectionCard,
+  StatCard,
+  StatusPill,
+  EmptyState,
+  RowsSkeleton,
+} from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — TrueNorth Financial" },
-      { name: "description", content: "Track portfolio value, investments, profit and activity in real time." },
+      {
+        name: "description",
+        content: "Track portfolio value, investments, profit and activity in real time.",
+      },
     ],
   }),
   component: Dashboard,
@@ -76,7 +86,10 @@ function Dashboard() {
         title="Dashboard"
         subtitle="A live view of your wealth with TrueNorth Financial."
         action={
-          <Link to="/deposit" className="hidden rounded-xl bg-royal px-4 py-2.5 text-sm font-semibold text-white sm:inline-flex">
+          <Link
+            to="/deposit"
+            className="hidden rounded-xl bg-royal px-4 py-2.5 text-sm font-semibold text-white sm:inline-flex"
+          >
             Go to payments
           </Link>
         }
@@ -88,7 +101,10 @@ function Dashboard() {
             <Lock className="size-5" />
           </span>
           <p className="min-w-0 flex-1 text-sm text-foreground">{BONUS_NOTICE}</p>
-          <Link to="/deposit" className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white">
+          <Link
+            to="/deposit"
+            className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white"
+          >
             Deposit now
           </Link>
         </div>
@@ -111,7 +127,9 @@ function Dashboard() {
         />
         <StatCard
           label="Total completed investments"
-          value={String((investments.data ?? []).filter((item) => item.status === "completed").length)}
+          value={String(
+            (investments.data ?? []).filter((item) => item.status === "completed").length,
+          )}
           icon={TrendingUp}
           tone="success"
           loading={investments.isLoading}
@@ -189,7 +207,11 @@ function Dashboard() {
               </ul>
             </>
           ) : (
-            <EmptyState icon={Layers} title="No allocation yet" description="Start a plan to see your mix." />
+            <EmptyState
+              icon={Layers}
+              title="No allocation yet"
+              description="Start a plan to see your mix."
+            />
           )}
         </SectionCard>
       </div>
@@ -219,7 +241,10 @@ function Dashboard() {
         ) : (investments.data ?? []).length ? (
           <ul className="space-y-2">
             {(investments.data ?? []).slice(0, 4).map((inv) => (
-              <li key={inv.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-secondary/60 px-3 py-2.5">
+              <li
+                key={inv.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-secondary/60 px-3 py-2.5"
+              >
                 <div>
                   <p className="text-sm font-medium text-navy">{inv.plan_name}</p>
                   <p className="text-xs text-muted-foreground">{formatDateTime(inv.created_at)}</p>
@@ -232,7 +257,11 @@ function Dashboard() {
             ))}
           </ul>
         ) : (
-          <EmptyState icon={Layers} title="No investments yet" description="Your recent purchase activity will appear here." />
+          <EmptyState
+            icon={Layers}
+            title="No investments yet"
+            description="Your recent purchase activity will appear here."
+          />
         )}
       </SectionCard>
 
@@ -242,7 +271,10 @@ function Dashboard() {
           className="lg:col-span-2"
           bodyClassName="p-0"
           action={
-            <Link to="/transactions" className="inline-flex items-center gap-1 text-xs font-semibold text-royal">
+            <Link
+              to="/transactions"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-royal"
+            >
               View all <ArrowRight className="size-3" />
             </Link>
           }
@@ -261,7 +293,9 @@ function Dashboard() {
                   <div className="flex min-w-0 items-center gap-3">
                     <span
                       className={`grid size-9 shrink-0 place-items-center rounded-xl ${
-                        t.direction === "in" ? "bg-success/10 text-success" : "bg-royal-soft text-royal"
+                        t.direction === "in"
+                          ? "bg-success/10 text-success"
+                          : "bg-royal-soft text-royal"
                       }`}
                     >
                       {t.direction === "in" ? (
@@ -272,11 +306,15 @@ function Dashboard() {
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-navy">{t.type}</p>
-                      <p className="truncate text-xs text-muted-foreground">{formatDateTime(t.created_at)}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {formatDateTime(t.created_at)}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}>
+                    <p
+                      className={`text-sm font-semibold ${t.direction === "in" ? "text-success" : "text-navy"}`}
+                    >
                       {t.direction === "in" ? "+" : "−"}
                       {formatCurrency(t.amount)}
                     </p>
@@ -286,7 +324,11 @@ function Dashboard() {
               ))}
             </ul>
           ) : (
-            <EmptyState icon={Receipt} title="No transactions yet" description="Your ledger will appear here." />
+            <EmptyState
+              icon={Receipt}
+              title="No transactions yet"
+              description="Your ledger will appear here."
+            />
           )}
         </SectionCard>
 
@@ -323,7 +365,10 @@ function Dashboard() {
             ) : activities.data?.length ? (
               <ul>
                 {activities.data.map((a) => (
-                  <li key={a.id} className="flex items-start gap-2 border-b border-border/60 px-5 py-3 last:border-0">
+                  <li
+                    key={a.id}
+                    className="flex items-start gap-2 border-b border-border/60 px-5 py-3 last:border-0"
+                  >
                     <ActivityIcon className="mt-0.5 size-3.5 shrink-0 text-royal" />
                     <div className="min-w-0">
                       <p className="truncate text-sm text-navy">{a.action}</p>

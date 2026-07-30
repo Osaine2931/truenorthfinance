@@ -23,21 +23,21 @@ export async function createNowPaymentsInvoice(payload: {
   orderId?: string;
   orderDescription?: string;
 }) {
-  const response = await fetch('/api/nowpayments/invoice', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const response = await fetch("/api/nowpayments/invoice", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       amount: payload.amount,
-      currency: payload.currency ?? 'USD',
-      crypto_currency: payload.cryptoCurrency ?? 'BTC',
+      currency: payload.currency ?? "USD",
+      crypto_currency: payload.cryptoCurrency ?? "BTC",
       order_id: payload.orderId,
       order_description: payload.orderDescription,
     }),
   });
 
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(text || 'Unable to create NOWPayments invoice');
+    const text = await response.text().catch(() => "");
+    throw new Error(text || "Unable to create NOWPayments invoice");
   }
 
   return (await response.json()) as NowPaymentsInvoice;

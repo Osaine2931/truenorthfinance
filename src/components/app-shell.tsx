@@ -125,7 +125,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile slide-out drawer */}
       {mobileNav && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-navy/40 backdrop-blur-sm" onClick={() => setMobileNav(false)} />
+          <div
+            className="absolute inset-0 bg-navy/40 backdrop-blur-sm"
+            onClick={() => setMobileNav(false)}
+          />
           <aside className="absolute inset-y-0 left-0 flex w-[17rem] flex-col bg-sidebar shadow-elevated animate-fade-up">
             <div className="flex items-center justify-between px-4 py-4">
               <BrandLockup compact />
@@ -138,7 +141,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             </div>
             <div className="mx-4 mb-2 rounded-2xl bg-royal p-4 text-white">
-              <p className="text-[10px] uppercase tracking-widest text-white/70">Available balance</p>
+              <p className="text-[10px] uppercase tracking-widest text-white/70">
+                Available balance
+              </p>
               <p className="font-display text-2xl font-semibold">
                 {formatCurrency(wallet.data?.available_balance)}
               </p>

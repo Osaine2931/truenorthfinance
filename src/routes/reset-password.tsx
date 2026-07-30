@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
 import { updatePassword } from "@/lib/api/auth";
+import { validatePassword } from "@/lib/security";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -22,6 +23,12 @@ function ResetPassword() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.valid) {
+      toast.error(passwordCheck.reasons[0]);
+      return;
+    }
+
     setLoading(true);
     try {
       await updatePassword(password);
@@ -39,7 +46,9 @@ function ResetPassword() {
       <div className="w-full max-w-sm">
         <BrandLockup className="mb-6" />
         <h1 className="font-display text-3xl font-semibold text-navy">Set a new password</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Choose a strong password to secure your account.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Choose a strong password to secure your account.
+        </p>
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <input
             type="password"

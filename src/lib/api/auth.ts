@@ -9,12 +9,23 @@ export function isSuperAdminEmail(email?: string | null) {
   return email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
 }
 
-async function ensureProfileAndWallet(userId: string, email?: string | null, fullName?: string | null) {
+async function ensureProfileAndWallet(
+  userId: string,
+  email?: string | null,
+  fullName?: string | null,
+) {
   const userEmail = email ?? "";
-  const baseCode = `${(userEmail || userId).split("@")[0] ?? "tn"}`.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 6);
+  const baseCode = `${(userEmail || userId).split("@")[0] ?? "tn"}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 6);
   const referralCode = `${baseCode}${userId.slice(0, 4)}`.toUpperCase();
 
-  const { data: existingProfile } = await supabase.from("profiles").select("user_id").eq("user_id", userId).maybeSingle();
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
   if (!existingProfile) {
     await supabase.from("profiles").insert({
       user_id: userId,
@@ -25,7 +36,11 @@ async function ensureProfileAndWallet(userId: string, email?: string | null, ful
     });
   }
 
-  const { data: existingWallet } = await supabase.from("wallets").select("id").eq("user_id", userId).maybeSingle();
+  const { data: existingWallet } = await supabase
+    .from("wallets")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
   if (!existingWallet) {
     await supabase.from("wallets").insert({
       user_id: userId,
@@ -52,7 +67,9 @@ async function ensureProfileAndWallet(userId: string, email?: string | null, ful
   }
 }
 
-async function sendPostAuthEmails(user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null) {
+async function sendPostAuthEmails(
+  user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null,
+) {
   if (!user?.email) return;
   const fullName = (user.user_metadata?.full_name as string | undefined) ?? undefined;
   try {
@@ -77,9 +94,22 @@ async function sendPostAuthEmails(user: { id: string; email?: string | null; use
 
 export async function signIn(email: string, password: string) {
   const data = await backend.signIn(email, password);
-  const user = (data as { user?: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null })?.user ?? null;
+  const user =
+    (
+      data as {
+        user?: {
+          id: string;
+          email?: string | null;
+          user_metadata?: Record<string, unknown>;
+        } | null;
+      }
+    )?.user ?? null;
   if (user) {
-    await ensureProfileAndWallet(user.id, user.email, (user.user_metadata?.full_name as string | undefined) ?? null);
+    await ensureProfileAndWallet(
+      user.id,
+      user.email,
+      (user.user_metadata?.full_name as string | undefined) ?? null,
+    );
     await sendLoginAlertEmail({
       email: user.email ?? email,
       fullName: (user.user_metadata?.full_name as string | undefined) ?? undefined,
@@ -92,9 +122,22 @@ export async function signIn(email: string, password: string) {
 
 export async function signUp(email: string, password: string, meta?: Record<string, unknown>) {
   const data = await backend.signUp(email, password, meta);
-  const user = (data as { user?: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null })?.user ?? null;
+  const user =
+    (
+      data as {
+        user?: {
+          id: string;
+          email?: string | null;
+          user_metadata?: Record<string, unknown>;
+        } | null;
+      }
+    )?.user ?? null;
   if (user) {
-    await ensureProfileAndWallet(user.id, user.email, (user.user_metadata?.full_name as string | undefined) ?? null);
+    await ensureProfileAndWallet(
+      user.id,
+      user.email,
+      (user.user_metadata?.full_name as string | undefined) ?? null,
+    );
     await sendWelcomeEmail({
       email: user.email ?? email,
       fullName: (user.user_metadata?.full_name as string | undefined) ?? undefined,

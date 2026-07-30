@@ -1,7 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Briefcase, TrendingUp, Clock3, Sparkles, CalendarRange } from "lucide-react";
 import { useInvestments, formatCurrency, formatDate } from "@/lib/api";
-import { PageHeader, SectionCard, StatusPill, EmptyState, RowsSkeleton, btnPrimary } from "@/components/ui-kit";
+import {
+  PageHeader,
+  SectionCard,
+  StatusPill,
+  EmptyState,
+  RowsSkeleton,
+  btnPrimary,
+} from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/my-investments")({
   head: () => ({
@@ -52,7 +59,9 @@ function MyInvestments() {
               <article key={inv.id} className="hover-lift surface-card rounded-2xl p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-display text-lg font-semibold text-navy">{inv.plan_name}</h3>
+                    <h3 className="font-display text-lg font-semibold text-navy">
+                      {inv.plan_name}
+                    </h3>
                     <p className="text-xs text-muted-foreground">
                       {formatDate(inv.started_at)} → {formatDate(inv.ends_at)}
                     </p>
@@ -66,20 +75,29 @@ function MyInvestments() {
                   </div>
                   <div className="rounded-xl bg-secondary p-3">
                     <p className="text-muted-foreground">Earned</p>
-                    <p className="font-semibold text-success">{formatCurrency(inv.profit_earned, 0)}</p>
+                    <p className="font-semibold text-success">
+                      {formatCurrency(inv.profit_earned, 0)}
+                    </p>
                   </div>
                   <div className="rounded-xl bg-secondary p-3">
                     <p className="text-muted-foreground">Expected</p>
-                    <p className="font-semibold text-navy">{formatCurrency(inv.expected_profit, 0)}</p>
+                    <p className="font-semibold text-navy">
+                      {formatCurrency(inv.expected_profit, 0)}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-4 rounded-2xl border border-border/70 bg-secondary/60 p-3">
                   <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    <span className="flex items-center gap-1"><Sparkles className="size-3" /> Live progress</span>
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="size-3" /> Live progress
+                    </span>
                     <span>{Math.round(progressPercent)}%</span>
                   </div>
                   <div className="h-2.5 overflow-hidden rounded-full bg-white/70">
-                    <div className="h-full rounded-full bg-royal transition-all" style={{ width: `${progressPercent}%` }} />
+                    <div
+                      className="h-full rounded-full bg-royal transition-all"
+                      style={{ width: `${progressPercent}%` }}
+                    />
                   </div>
                   <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
                     <div className="rounded-xl bg-card p-2.5">
@@ -93,8 +111,12 @@ function MyInvestments() {
                   </div>
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1"><CalendarRange className="size-3" /> Maturity {formatDate(inv.ends_at)}</span>
-                  <span className="inline-flex items-center gap-1"><Clock3 className="size-3" /> {isActive ? "Active" : inv.status}</span>
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarRange className="size-3" /> Maturity {formatDate(inv.ends_at)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock3 className="size-3" /> {isActive ? "Active" : inv.status}
+                  </span>
                 </div>
                 <div className="mt-3 rounded-xl bg-royal-soft p-3 text-sm text-navy">
                   <div className="flex items-center justify-between gap-2">
