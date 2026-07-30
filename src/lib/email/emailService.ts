@@ -6,7 +6,12 @@ export type EmailTemplateKey =
   | "security-alert"
   | "admin-wallet-adjustment"
   | "deposit-approved"
-  | "withdrawal-approved";
+  | "withdrawal-approved"
+  | "wallet-credited"
+  | "wallet-debited"
+  | "investment-purchased"
+  | "investment-completed"
+  | "announcement";
 
 export type EmailMessage = {
   to: string;

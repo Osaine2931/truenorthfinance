@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Users,
@@ -59,6 +59,7 @@ import {
   type Plan,
   type Profile,
 } from "@/lib/api";
+import type { MonitoringSnapshot } from "@/lib/automation";
 import {
   PageHeader,
   SectionCard,
@@ -174,6 +175,44 @@ function Overview() {
   const investments = useAdminInvestments();
   const referrals = useAdminReferrals();
   const plans = usePlans(false);
+  const [monitoring, setMonitoring] = useState<MonitoringSnapshot | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const response = await fetch("/api/monitoring");
+        const payload = (await response.json()) as { snapshot?: MonitoringSnapshot };
+        if (!cancelled && payload.snapshot) {
+          setMonitoring(payload.snapshot);
+        }
+      } catch {
+        if (!cancelled) {
+          setMonitoring({
+            apiStatus: "Degraded",
+            databaseStatus: "Checking",
+            activeSessions: 0,
+            onlineUsers: 0,
+            apiResponseTime: 0,
+            failedLoginAttempts: 0,
+            failedPaymentAttempts: 0,
+            failedEmailDeliveries: 0,
+            recentErrors: 0,
+            scheduledJobsStatus: "Checking",
+          });
+        }
+      }
+    };
+
+    void load();
+    const interval = window.setInterval(() => {
+      void load();
+    }, 30000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   const w = wallets.data ?? [];
   const totalDeposited = w.reduce((s, x) => s + Number(x.total_deposited), 0);
@@ -236,6 +275,28 @@ function Overview() {
           tone="success"
         />
       </div>
+
+      <SectionCard title="System health monitoring" description="Auto-refreshing operational overview for the launch environment.">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {[
+            ["API status", monitoring?.apiStatus ?? "Checking"],
+            ["Database", monitoring?.databaseStatus ?? "Checking"],
+            ["Active sessions", String(monitoring?.activeSessions ?? 0)],
+            ["Online users", String(monitoring?.onlineUsers ?? 0)],
+            ["Response time", `${monitoring?.apiResponseTime ?? 0} ms`],
+            ["Failed logins", String(monitoring?.failedLoginAttempts ?? 0)],
+            ["Failed payments", String(monitoring?.failedPaymentAttempts ?? 0)],
+            ["Failed emails", String(monitoring?.failedEmailDeliveries ?? 0)],
+            ["Recent errors", String(monitoring?.recentErrors ?? 0)],
+            ["Scheduled jobs", monitoring?.scheduledJobsStatus ?? "Checking"],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-2xl border border-border/70 bg-secondary/50 p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+              <p className="mt-1 font-semibold text-navy">{value}</p>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
     </div>
   );
 }
