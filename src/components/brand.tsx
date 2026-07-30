@@ -1,16 +1,39 @@
-import logo from "@/assets/truenorth-logo.asset.json";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export const LOGO_URL = logo.url;
+/** Single source of truth for the brand logo asset. Served from /public → works in dev + prod. */
+export const LOGO_URL = "/logo.png";
+
+/** Professional fallback used whenever the logo asset fails to load. */
+function LogoFallback({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "grid shrink-0 place-items-center rounded-xl bg-gradient-to-br from-royal to-sky text-white",
+        "font-display text-[0.6em] font-extrabold tracking-tight",
+        className,
+      )}
+    >
+      TNF
+    </span>
+  );
+}
 
 export function BrandMark({ className }: { className?: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) return <LogoFallback className={cn("size-9", className)} />;
+
   return (
     <img
-      src={logo.url}
+      src={LOGO_URL}
       alt="TrueNorth Financial logo"
-      className={cn("size-9 shrink-0 rounded-xl object-contain", className)}
-      width={72}
-      height={72}
+      onError={() => setFailed(true)}
+      decoding="async"
+      className={cn("size-9 shrink-0 object-contain", className)}
+      width={512}
+      height={512}
     />
   );
 }
@@ -27,8 +50,12 @@ export function BrandLockup({
   return (
     <span className={cn("flex min-w-0 items-center gap-2.5", className)}>
       <BrandMark
-        className={cn(compact ? "size-9" : "size-12", tone === "invert" && "bg-white/90 p-1")}
+        className={cn(
+          compact ? "size-9" : "size-12",
+          tone === "invert" && "rounded-xl bg-white/95 p-1.5 shadow-sm",
+        )}
       />
+
       <span className="min-w-0 leading-tight">
         <span
           className={cn(

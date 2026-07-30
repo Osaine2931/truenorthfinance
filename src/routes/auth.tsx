@@ -1,32 +1,49 @@
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { lovable } from "@/integrations/lovable";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
 import { useRedirectIfAuthenticated, resolveHomePath } from "@/hooks/use-session-redirect";
 import { signIn, signUp } from "@/lib/api/auth";
-import { sanitizeInput, validatePassword } from "@/lib/security";
+import {
+  sanitizeInput,
+  validatePassword,
+  isValidEmail,
+  getLoginLock,
+  recordFailedLogin,
+  clearLoginAttempts,
+} from "@/lib/security";
 
-type AuthSearch = { mode?: "login" | "register"; redirect?: string };
+type AuthSearch = { mode?: "login" | "register"; redirect?: string; ref?: string };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): AuthSearch => ({
     mode: search.mode === "register" ? "register" : search.mode === "login" ? "login" : undefined,
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+    ref: typeof search.ref === "string" ? search.ref : undefined,
   }),
   head: () => ({
     meta: [
       { title: "Sign in — TrueNorth Financial" },
       {
         name: "description",
-        content: "Sign in or open an TrueNorth Financial investment account.",
+        content: "Sign in or open a TrueNorth Financial investment account with email and password.",
       },
+      { property: "og:title", content: "Sign in — TrueNorth Financial" },
+      {
+        property: "og:description",
+        content: "Access your TrueNorth Financial portfolio securely.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: AuthPage,
 });
+
+const inputClass =
+  "w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring";
 
 function AuthPage() {
   const search = useSearch({ from: "/auth" });
@@ -34,7 +51,9 @@ function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">(search.mode ?? "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [referral, setReferral] = useState(search.ref ?? "");
   const [loading, setLoading] = useState(false);
   useRedirectIfAuthenticated();
 
@@ -42,11 +61,31 @@ function AuthPage() {
     e.preventDefault();
     const cleanedEmail = sanitizeInput(email).toLowerCase();
     const cleanedName = sanitizeInput(name);
+    const cleanedReferral = sanitizeInput(referral).toUpperCase();
+
+    if (!isValidEmail(cleanedEmail)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
 
     if (mode === "register") {
+      if (cleanedName.length < 2) {
+        toast.error("Enter your full name.");
+        return;
+      }
       const passwordCheck = validatePassword(password);
       if (!passwordCheck.valid) {
         toast.error(passwordCheck.reasons[0]);
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast.error("Passwords do not match.");
+        return;
+      }
+    } else {
+      const lock = getLoginLock(cleanedEmail);
+      if (lock.locked) {
+        toast.error(`Too many failed attempts. Try again in ${lock.minutesRemaining} minute(s).`);
         return;
       }
     }
@@ -54,37 +93,40 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "register") {
-        await signUp(cleanedEmail, password, { full_name: cleanedName });
+        await signUp(cleanedEmail, password, {
+          full_name: cleanedName,
+          referral_code: cleanedReferral || undefined,
+        });
+        clearLoginAttempts(cleanedEmail);
         toast.success("Account created", {
-          description: "Check your email to verify your address and access your dashboard.",
+          description: "Your wallet is ready and your $1,000 welcome bonus has been credited.",
         });
         navigate({ to: await resolveHomePath(), replace: true });
       } else {
         await signIn(cleanedEmail, password);
+        clearLoginAttempts(cleanedEmail);
         toast.success("Welcome back");
         const home = await resolveHomePath();
         navigate({ to: (search.redirect as "/dashboard") ?? home, replace: true });
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
-      toast.error(msg);
+      if (mode === "login") {
+        const state = recordFailedLogin(cleanedEmail);
+        if (state.locked) {
+          toast.error(`Account temporarily locked. Try again in ${state.minutesRemaining} minute(s).`);
+        } else {
+          toast.error("Invalid email or password.", {
+            description: `${state.attemptsRemaining} attempt(s) remaining before a temporary lock.`,
+          });
+        }
+      } else {
+        const raw = err instanceof Error ? err.message : "";
+        const duplicate = /already|registered|exists/i.test(raw);
+        toast.error(
+          duplicate ? "An account with this email already exists." : "Could not create your account.",
+        );
+      }
     } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleGoogle() {
-    setLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-      navigate({ to: await resolveHomePath(), replace: true });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Google sign-in failed";
-      toast.error(msg);
       setLoading(false);
     }
   }
@@ -133,71 +175,113 @@ function AuthPage() {
               : "Start investing in minutes. No paperwork."}
           </p>
 
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={loading}
-            className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-accent disabled:opacity-50"
-          >
-            <GoogleIcon />
-            Continue with Google
-          </button>
-
-          <div className="my-6 flex items-center gap-4 text-xs text-muted-foreground">
-            <div className="h-px flex-1 bg-border" />
-            or
-            <div className="h-px flex-1 bg-border" />
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             {mode === "register" && (
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-foreground">
+                <label htmlFor="name" className="mb-1.5 block text-xs font-medium text-foreground">
                   Full name
                 </label>
                 <input
+                  id="name"
                   type="text"
                   required
+                  maxLength={100}
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  className={inputClass}
                   placeholder="Alexander Vance"
                 />
               </div>
             )}
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-foreground">Email</label>
+              <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-foreground">
+                Email address
+              </label>
               <input
+                id="email"
                 type="email"
                 required
+                maxLength={255}
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                className={inputClass}
                 placeholder="you@example.com"
               />
             </div>
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <label className="block text-xs font-medium text-foreground">Password</label>
+                <label htmlFor="password" className="block text-xs font-medium text-foreground">
+                  Password
+                </label>
                 {mode === "login" && (
                   <Link
                     to="/forgot-password"
                     className="text-xs font-medium text-royal hover:underline"
                   >
-                    Forgot?
+                    Forgot password?
                   </Link>
                 )}
               </div>
               <input
+                id="password"
                 type="password"
                 required
-                minLength={8}
+                minLength={mode === "register" ? 12 : 8}
+                autoComplete={mode === "register" ? "new-password" : "current-password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                className={inputClass}
                 placeholder="••••••••"
               />
+              {mode === "register" && (
+                <p className="mt-1.5 text-[0.7rem] text-muted-foreground">
+                  At least 12 characters with upper and lower case, a number and a symbol.
+                </p>
+              )}
             </div>
+
+            {mode === "register" && (
+              <>
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="mb-1.5 block text-xs font-medium text-foreground"
+                  >
+                    Confirm password
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    required
+                    minLength={12}
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={inputClass}
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="referral"
+                    className="mb-1.5 block text-xs font-medium text-foreground"
+                  >
+                    Referral code <span className="text-muted-foreground">(optional)</span>
+                  </label>
+                  <input
+                    id="referral"
+                    type="text"
+                    maxLength={24}
+                    value={referral}
+                    onChange={(e) => setReferral(e.target.value)}
+                    className={`${inputClass} uppercase`}
+                    placeholder="TNF1A2B3"
+                  />
+                </div>
+              </>
+            )}
 
             <button
               type="submit"
@@ -222,28 +306,5 @@ function AuthPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg className="size-4" viewBox="0 0 24 24">
-      <path
-        fill="#4285F4"
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-      />
-    </svg>
   );
 }
