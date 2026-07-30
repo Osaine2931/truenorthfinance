@@ -58,7 +58,7 @@ export function useUpdateSupportTicket() {
   const invalidate = useInvalidate();
   return useMutation({
     mutationFn: async ({ id, status, priority }: { id: string; status?: string; priority?: string }) => {
-      const patch: Record<string, unknown> = {};
+      const patch: { status?: string; priority?: string } = {};
       if (status) patch.status = status;
       if (priority) patch.priority = priority;
       const { error } = await supabase.from("support_tickets").update(patch).eq("id", id);
