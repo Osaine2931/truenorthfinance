@@ -25,22 +25,54 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
 
     let candles: Candle[] = [];
     let price = 94;
-    let trend = 1;
     let offset = 0;
     let last = performance.now();
     let raf = 0;
 
+    // Swing-leg generator: price travels in sustained impulse legs with
+    // shallow pullbacks, producing visible higher-highs / lower-lows waves
+    // and candles of widely varying body size (like a real chart).
+    let legDirection: 1 | -1 = 1;
+    let legRemaining = 0;
+    let legStrength = 1;
+
+    const startLeg = (forced?: 1 | -1) => {
+      // Impulse legs run longer than pullbacks.
+      const impulse = forced ?? (Math.random() > 0.34 ? legDirection : (-legDirection as 1 | -1));
+      legDirection = impulse;
+      legRemaining = 4 + Math.floor(Math.random() * 9);
+      legStrength = 1.6 + Math.random() * 2.6;
+    };
+
+    startLeg(1);
+
     const makeCandle = (): Candle => {
-      const drift = trend * 0.9 + (Math.random() - 0.5) * 2.4;
+      if (legRemaining <= 0) startLeg();
+      legRemaining -= 1;
+
+      const momentum = legDirection * legStrength * (0.45 + Math.random() * 1.15);
+      const noise = (Math.random() - 0.5) * 1.6;
       const open = price;
-      const close = Math.max(42, Math.min(158, open + drift));
-      const high = Math.max(open, close) + Math.random() * 4.2 + 1;
-      const low = Math.min(open, close) - Math.random() * 4.2 - 1;
-      const volume = 20 + Math.random() * 55;
+      let close = open + momentum + noise;
+
+      // Keep the wave inside the frame by flipping the leg at the extremes.
+      if (close > 156) {
+        startLeg(-1);
+        close = open - Math.abs(momentum);
+      } else if (close < 44) {
+        startLeg(1);
+        close = open + Math.abs(momentum);
+      }
+      close = Math.max(42, Math.min(158, close));
+
+      const range = Math.abs(close - open);
+      const high = Math.max(open, close) + Math.random() * (1.5 + range * 0.6) + 0.6;
+      const low = Math.min(open, close) - Math.random() * (1.5 + range * 0.6) - 0.6;
+      const volume = 18 + range * 9 + Math.random() * 22;
       price = close;
-      trend = Math.random() > 0.72 ? -trend : trend;
       return { open, close, high, low, volume };
     };
+
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
