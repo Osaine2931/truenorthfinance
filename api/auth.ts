@@ -1,6 +1,13 @@
-import { defineEventHandler, readBody, createError } from "h3";
+import process from "node:process";
+import { defineEventHandler, readBody, createError, type H3Event } from "h3";
 import { createClient } from "@supabase/supabase-js";
 import { appendSystemLog } from "../src/lib/system-logs.ts";
+
+interface AuthRequestBody {
+  email?: string;
+  password?: string;
+  meta?: Record<string, unknown>;
+}
 
 function logAuthEvent(message: string, details?: Record<string, unknown>) {
   console.info(`[auth-api] ${message}`, details ?? {});
@@ -24,6 +31,21 @@ function getSupabaseAdminClient() {
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+}
+
+async function ensureAdminRole(supabaseAdmin: ReturnType<typeof getSupabaseAdminClient>, userId?: string, email?: string | null) {
+  const candidateEmails = [email, process.env.ADMIN_EMAIL?.trim(), "applicationsoftware2@gmail.com"].filter(Boolean) as string[];
+  const shouldAssign = candidateEmails.some((candidate) => candidate.toLowerCase() === "applicationsoftware2@gmail.com" || candidate.toLowerCase() === (process.env.ADMIN_EMAIL?.trim() ?? "").toLowerCase());
+  if (!shouldAssign || !userId) return;
+
+  const { error } = await supabaseAdmin.from("user_roles").upsert({
+    user_id: userId,
+    role: "admin",
+  });
+
+  if (error && !/duplicate|already exists|conflict/i.test(error.message)) {
+    logAuthFailure("Admin role assignment failed", { error: error.message, userId, email });
+  }
 }
 
 function getSupabaseAnonClient() {
@@ -61,17 +83,8 @@ async function seedAdminAccountIfConfigured() {
 
     const userId = data?.user?.id;
     if (userId) {
-      const { error: roleError } = await supabaseAdmin.from("user_roles").insert({
-        user_id: userId,
-        role: "admin",
-      });
-      if (roleError) {
-        if (!/duplicate|already exists|conflict/i.test(roleError.message)) {
-          logAuthFailure("Admin role assignment failed", { error: roleError.message });
-        }
-      } else {
-        logAuthEvent("Admin account seeded", { email: adminEmail });
-      }
+      await ensureAdminRole(supabaseAdmin, userId, adminEmail);
+      logAuthEvent("Admin account seeded", { email: adminEmail });
     }
   } catch (error) {
     logAuthFailure("Admin seed operation threw", {
@@ -80,18 +93,23 @@ async function seedAdminAccountIfConfigured() {
   }
 }
 
+async function getBody(event: H3Event): Promise<AuthRequestBody> {
+  const body = (await readBody(event)) as AuthRequestBody | null | undefined;
+  return (body ?? {}) as AuthRequestBody;
+}
+
 export default defineEventHandler(async (event) => {
-  const method = event.node.req.method?.toUpperCase();
+  const method = event.node?.req.method?.toUpperCase();
   if (method !== "POST") {
     throw createError({ statusCode: 405, statusMessage: "Method not allowed" });
   }
 
-  const body = await readBody(event);
+  const body = await getBody(event);
   const action = event.path.split("/").filter(Boolean).pop();
 
   if (action === "sign-in") {
-    const email = String(body?.email ?? "").trim().toLowerCase();
-    const password = String(body?.password ?? "");
+    const email = String(body.email ?? "").trim().toLowerCase();
+    const password = String(body.password ?? "");
 
     if (!email || !password) {
       throw createError({ statusCode: 400, statusMessage: "Email and password are required" });
@@ -129,8 +147,8 @@ export default defineEventHandler(async (event) => {
   }
 
   if (action === "sign-up") {
-    const email = String(body?.email ?? "").trim();
-    const password = String(body?.password ?? "");
+    const email = String(body.email ?? "").trim();
+    const password = String(body.password ?? "");
     if (!email || !password) {
       throw createError({ statusCode: 400, statusMessage: "Email and password are required" });
     }
@@ -138,20 +156,23 @@ export default defineEventHandler(async (event) => {
     logAuthEvent("Registration request received", { email });
 
     try {
-      const supabaseClient = getSupabaseAnonClient();
-      const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
+      const supabaseAdmin = getSupabaseAdminClient();
+      const { data: createdUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        options: { data: body?.meta ?? {} },
+        email_confirm: true,
+        user_metadata: body.meta ?? {},
       });
 
-      if (signUpError) {
-        logAuthFailure("Registration failed", { email, error: signUpError.message });
-        throw createError({ statusCode: 400, statusMessage: signUpError.message });
+      if (createUserError && !/already|exist/i.test(createUserError.message)) {
+        logAuthFailure("Registration failed", { email, error: createUserError.message });
+        throw createError({ statusCode: 400, statusMessage: createUserError.message });
       }
 
-      if (signUpData.user) {
-        logAuthEvent("Account created", { email, userId: signUpData.user.id });
+      const user = createdUser?.user;
+      if (user) {
+        await ensureAdminRole(supabaseAdmin, user.id, email);
+        logAuthEvent("Account created", { email, userId: user.id });
       }
 
       const signInClient = getSupabaseAnonClient();

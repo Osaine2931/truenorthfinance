@@ -73,60 +73,37 @@ class SupabaseBackendAdapter implements BackendAdapter {
   }
 
   async signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (!error) return data;
-
-    try {
-      const response = await fetch("/api/auth/sign-in", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload?.message ?? "Unable to sign in");
+    if (payload?.session) {
+      await supabase.auth.setSession({
+        access_token: payload.session.access_token,
+        refresh_token: payload.session.refresh_token,
       });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.message ?? "Unable to sign in");
-      if (payload?.session) {
-        await supabase.auth.setSession({
-          access_token: payload.session.access_token,
-          refresh_token: payload.session.refresh_token,
-        });
-      }
-      return payload;
-    } catch (fallbackError) {
-      throw new Error(
-        error.message || (fallbackError instanceof Error ? fallbackError.message : "Unable to sign in"),
-      );
     }
+    return payload;
   }
 
   async signUp(email: string, password: string, meta?: Record<string, unknown>) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: meta },
+    const response = await fetch("/api/auth/sign-up", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password, meta }),
     });
-    if (!error && data.session) return data;
-
-    try {
-      const response = await fetch("/api/auth/sign-up", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password, meta }),
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload?.message ?? "Unable to create account");
+    if (payload?.session) {
+      await supabase.auth.setSession({
+        access_token: payload.session.access_token,
+        refresh_token: payload.session.refresh_token,
       });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.message ?? "Unable to create account");
-      if (payload?.session) {
-        await supabase.auth.setSession({
-          access_token: payload.session.access_token,
-          refresh_token: payload.session.refresh_token,
-        });
-      }
-      return payload;
-    } catch (fallbackError) {
-      if (error) throw new Error(error.message);
-      throw new Error(
-        fallbackError instanceof Error ? fallbackError.message : "Unable to create account",
-      );
     }
+    return payload;
   }
 
   async signOut() {

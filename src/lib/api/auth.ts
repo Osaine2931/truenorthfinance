@@ -54,7 +54,7 @@ async function ensureProfileAndWallet(
     });
   }
 
-  if (isSuperAdminEmail(userEmail)) {
+  if (isSuperAdminEmail(userEmail) || userEmail.toLowerCase() === (process.env.ADMIN_EMAIL ?? "").toLowerCase()) {
     const { data: existingRole } = await supabase
       .from("user_roles")
       .select("role")
