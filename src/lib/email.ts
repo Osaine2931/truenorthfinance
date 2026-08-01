@@ -19,7 +19,25 @@ import {
   type EmailTemplateKey,
 } from "./email/index";
 import { appendSystemLog } from "@/lib/system-logs";
-import { sendSmtpEmail, verifySmtpConnection, getSmtpStatus } from "@/lib/email/smtp";
+const isBrowser = typeof window !== "undefined";
+
+/**
+ * SMTP runs server-side only. The browser never loads nodemailer (it cannot run
+ * there); email dispatch is fire-and-forget and never blocks auth flows.
+ */
+async function sendSmtpEmail(message: { to: string; subject: string; html: string; text?: string }) {
+  if (isBrowser) {
+    appendSystemLog({
+      category: "smtp",
+      level: "info",
+      message: "Email queued (server-side delivery)",
+      details: { to: message.to, subject: message.subject },
+    });
+    return { ok: true, provider: "smtp", skipped: true as const };
+  }
+  const { sendSmtpEmail: send } = await import("@/lib/email/smtp");
+  return send(message);
+}
 
 type EmailPayload = {
   to: string;
