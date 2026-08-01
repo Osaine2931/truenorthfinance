@@ -8,6 +8,7 @@ import { signIn, signUp } from "@/lib/api/auth";
 import {
   sanitizeInput,
   validatePassword,
+  getPasswordValidationSummary,
   isValidEmail,
   getLoginLock,
   recordFailedLogin,
@@ -56,6 +57,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [referral, setReferral] = useState(search.ref ?? "");
   const [loading, setLoading] = useState(false);
+  const passwordValidation = getPasswordValidationSummary(password);
   useRedirectIfAuthenticated();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -263,18 +265,25 @@ function AuthPage() {
                 id="password"
                 type="password"
                 required
-                minLength={mode === "register" ? 12 : 8}
+                minLength={8}
                 autoComplete={mode === "register" ? "new-password" : "current-password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={inputClass}
                 placeholder="••••••••"
               />
-              {mode === "register" && (
-                <p className="mt-1.5 text-[0.7rem] text-muted-foreground">
-                  At least 12 characters with upper and lower case, a number and a symbol.
-                </p>
-              )}
+              {mode === "register" && password.length > 0 ? (
+                <div className="mt-2 space-y-1 rounded-lg border border-border/70 bg-secondary/60 p-3 text-xs text-muted-foreground">
+                  {passwordValidation.checklist.map((item) => (
+                    <div key={item.label} className="flex items-center gap-2">
+                      <span className={item.ok ? "text-emerald-600" : "text-amber-600"}>
+                        {item.ok ? "●" : "○"}
+                      </span>
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             {mode === "register" && (
@@ -320,7 +329,7 @@ function AuthPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (mode === "register" && !passwordValidation.valid)}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-royal px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
             >
               {loading && <Loader2 className="size-4 animate-spin" />}

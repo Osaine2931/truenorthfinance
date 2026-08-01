@@ -68,6 +68,8 @@ function DepositPage() {
     expiresAt?: string;
     status: string;
     invoiceId: string;
+    paymentId?: string;
+    paymentUrl?: string;
   }>(null);
   const [countdown, setCountdown] = useState(0);
 
@@ -118,6 +120,8 @@ function DepositPage() {
         expiresAt: response?.invoice?.expiresAt ?? undefined,
         status: response?.invoice?.status ?? "waiting",
         invoiceId: response?.invoice?.invoiceId ?? "",
+        paymentId: response?.invoice?.paymentId,
+        paymentUrl: response?.invoice?.paymentUrl,
       });
       setTxHash("");
       toast.success("Payment invoice created", {
@@ -331,9 +335,11 @@ function DepositPage() {
                   className="mx-auto h-40 w-40 rounded-2xl border border-border bg-white p-2"
                 />
               ) : null}
-              <div className="rounded-xl border border-border/70 bg-card/70 p-3 text-xs text-muted-foreground">
+              <div className="rounded-xl border border-border/70 bg-card/70 p-3 text-xs text-muted-foreground space-y-1">
                 <p>Payment address: {invoice.paymentAddress}</p>
-                <p className="mt-1">Invoice ID: {invoice.invoiceId}</p>
+                <p>Invoice ID: {invoice.invoiceId}</p>
+                {invoice.paymentId ? <p>Payment ID: {invoice.paymentId}</p> : null}
+                {invoice.paymentUrl ? <p>Payment URL: {invoice.paymentUrl}</p> : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link

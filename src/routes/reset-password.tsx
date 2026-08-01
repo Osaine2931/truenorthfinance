@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
 import { updatePassword } from "@/lib/api/auth";
-import { validatePassword } from "@/lib/security";
+import { getPasswordValidationSummary, validatePassword } from "@/lib/security";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -20,6 +20,7 @@ function ResetPassword() {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const passwordValidation = getPasswordValidationSummary(password);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,9 +60,21 @@ function ResetPassword() {
             className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             placeholder="New password"
           />
+          {password.length > 0 ? (
+            <div className="space-y-1 rounded-lg border border-border/70 bg-secondary/60 p-3 text-xs text-muted-foreground">
+              {passwordValidation.checklist.map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <span className={item.ok ? "text-emerald-600" : "text-amber-600"}>
+                    {item.ok ? "●" : "○"}
+                  </span>
+                  <span>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !passwordValidation.valid}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-royal px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
           >
             {loading && <Loader2 className="size-4 animate-spin" />}

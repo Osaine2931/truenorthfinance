@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { backend, type BackendError } from "./backend";
 import { sendLoginAlertEmail, sendWelcomeEmail } from "@/lib/email";
+import { validatePassword } from "@/lib/security";
 
 const SUPER_ADMIN_EMAIL = "applicationsoftware2@gmail.com";
 
@@ -76,6 +77,11 @@ async function syncSupabaseSession(data: unknown) {
       refresh_token: session.refresh_token,
     });
   }
+
+  const { data: currentSession } = await supabase.auth.getSession();
+  if (!currentSession.session) {
+    throw new Error("Authentication did not create a usable session.");
+  }
 }
 
 async function sendPostAuthEmails(
@@ -104,6 +110,9 @@ async function sendPostAuthEmails(
 /** Session + role primitives. Backend swap point: replace bodies with JWT calls. */
 
 export async function signIn(email: string, password: string) {
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) throw new Error(passwordCheck.reasons[0]);
+
   const data = await backend.signIn(email, password);
   await syncSupabaseSession(data);
   const user =
@@ -133,6 +142,9 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signUp(email: string, password: string, meta?: Record<string, unknown>) {
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) throw new Error(passwordCheck.reasons[0]);
+
   let data = await backend.signUp(email, password, meta);
   await syncSupabaseSession(data);
 

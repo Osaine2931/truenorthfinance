@@ -22,6 +22,9 @@ export async function createNowPaymentsInvoice(payload: {
   cryptoCurrency?: string;
   orderId?: string;
   orderDescription?: string;
+  userId?: string;
+  depositId?: string;
+  paymentAddress?: string;
 }) {
   const response = await fetch("/api/nowpayments/invoice", {
     method: "POST",
@@ -32,6 +35,9 @@ export async function createNowPaymentsInvoice(payload: {
       crypto_currency: payload.cryptoCurrency ?? "BTC",
       order_id: payload.orderId,
       order_description: payload.orderDescription,
+      user_id: payload.userId,
+      deposit_id: payload.depositId,
+      payment_address: payload.paymentAddress,
     }),
   });
 

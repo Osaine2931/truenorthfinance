@@ -132,31 +132,41 @@ function getSignatureHeader(headers: Headers | Record<string, string | string[] 
   return "";
 }
 
-function createMockInvoice(payload: Record<string, unknown>) {
-  const amount = Number(payload.amount ?? payload.price_amount ?? 1000);
-  const currency = String(payload.currency ?? payload.price_currency ?? "USD");
-  const crypto = String(payload.crypto_currency ?? "BTC");
-  const cryptoAmount = (amount / 65000).toFixed(4);
-  const address = "bc1qexampleaddressforlocaltesting";
-  const invoiceId = `tn-${Date.now()}`;
+async function storeInvoiceRecord(payload: Record<string, unknown>, invoice: Record<string, unknown>) {
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) return;
 
-  return {
-    ok: true,
-    invoice_id: invoiceId,
-    payment_id: invoiceId,
-    status: "waiting",
-    price_amount: amount,
-    price_currency: currency,
-    pay_currency: crypto,
-    actually_paid: "0",
-    pay_address: address,
-    pay_amount: cryptoAmount,
-    order_id: payload.order_id ?? invoiceId,
-    order_description: payload.order_description ?? "TrueNorth wallet funding",
-    invoice_url: `https://nowpayments.io/invoice/${invoiceId}`,
-    expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    qr_code_url: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(address)}`,
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const orderId = String(payload.order_id ?? invoice.order_id ?? "");
+  const userId = String(payload.user_id ?? "");
+  if (!orderId || !userId) return;
+
+  const depositId = String(payload.deposit_id ?? "");
+  const amount = Number(payload.amount ?? payload.price_amount ?? invoice.price_amount ?? 0);
+
+  const record = {
+    order_id: orderId,
+    user_id: userId,
+    deposit_id: depositId || null,
+    invoice_id: String(invoice.invoice_id ?? ""),
+    payment_id: String(invoice.payment_id ?? invoice.invoice_id ?? ""),
+    payment_address: String(invoice.pay_address ?? ""),
+    payment_url: String(invoice.invoice_url ?? ""),
+    qr_code_url: String(invoice.qr_code_url ?? invoice.qrcode ?? ""),
+    amount,
+    currency: String(invoice.price_currency ?? payload.currency ?? "USD"),
+    crypto_currency: String(invoice.pay_currency ?? payload.crypto_currency ?? "BTC"),
+    expires_at: invoice.expires_at ? String(invoice.expires_at) : null,
+    status: String(invoice.status ?? "waiting"),
+    metadata: invoice,
   };
+
+  await supabaseAdmin.from("payments").upsert(record, { onConflict: "order_id" });
 }
 
 export default defineEventHandler(async (event) => {
@@ -208,10 +218,6 @@ export default defineEventHandler(async (event) => {
       throw validationError;
     }
 
-    if (!config.apiKey) {
-      return createMockInvoice(body);
-    }
-
     const payload = {
       price_amount: Number(body.amount ?? body.price_amount ?? 1000),
       price_currency: body.currency ?? body.price_currency ?? "USD",
@@ -236,9 +242,18 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = await response.json().catch(() => ({}));
+    const invoice = {
+      ...(data as Record<string, unknown>),
+      pay_address: (data as Record<string, unknown>).pay_address ?? body.payment_address ?? "",
+      invoice_url: (data as Record<string, unknown>).invoice_url ?? (data as Record<string, unknown>).payment_url ?? "",
+      qr_code_url: (data as Record<string, unknown>).qr_code_url ?? (data as Record<string, unknown>).qrcode ?? "",
+    };
+
+    await storeInvoiceRecord(body, invoice as Record<string, unknown>);
+
     return {
       ok: true,
-      ...data,
+      ...invoice,
     };
   }
 
