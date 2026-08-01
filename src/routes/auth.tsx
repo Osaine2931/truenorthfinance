@@ -13,6 +13,7 @@ import {
   recordFailedLogin,
   clearLoginAttempts,
 } from "@/lib/security";
+import { appendSystemLog } from "@/lib/system-logs";
 
 type AuthSearch = { mode?: "login" | "register"; redirect?: string; ref?: string };
 
@@ -63,53 +64,87 @@ function AuthPage() {
     const cleanedName = sanitizeInput(name);
     const cleanedReferral = sanitizeInput(referral).toUpperCase();
 
+    appendSystemLog({
+      category: "auth",
+      level: "info",
+      message: "Login button clicked",
+      details: { mode, email: cleanedEmail },
+    });
+
+    console.info(`[auth] Login button clicked`, { mode, email: cleanedEmail });
+
     if (!isValidEmail(cleanedEmail)) {
+      appendSystemLog({ category: "auth", level: "warn", message: "Validation failed", details: { reason: "invalid-email" } });
       toast.error("Enter a valid email address.");
       return;
     }
 
     if (mode === "register") {
       if (cleanedName.length < 2) {
+        appendSystemLog({ category: "auth", level: "warn", message: "Validation failed", details: { reason: "missing-name" } });
         toast.error("Enter your full name.");
         return;
       }
       const passwordCheck = validatePassword(password);
       if (!passwordCheck.valid) {
+        appendSystemLog({ category: "auth", level: "warn", message: "Validation failed", details: { reason: "weak-password" } });
         toast.error(passwordCheck.reasons[0]);
         return;
       }
       if (password !== confirmPassword) {
+        appendSystemLog({ category: "auth", level: "warn", message: "Validation failed", details: { reason: "password-mismatch" } });
         toast.error("Passwords do not match.");
         return;
       }
     } else {
       const lock = getLoginLock(cleanedEmail);
       if (lock.locked) {
+        appendSystemLog({ category: "auth", level: "warn", message: "Login blocked by lockout", details: { email: cleanedEmail } });
         toast.error(`Too many failed attempts. Try again in ${lock.minutesRemaining} minute(s).`);
         return;
       }
     }
 
+    appendSystemLog({ category: "auth", level: "info", message: "Validation passed", details: { mode, email: cleanedEmail } });
+    console.info(`[auth] Validation passed`, { mode, email: cleanedEmail });
+
     setLoading(true);
     try {
       if (mode === "register") {
+        appendSystemLog({ category: "auth", level: "info", message: "API request sent", details: { action: "sign-up", email: cleanedEmail } });
+        console.info(`[auth] API request sent`, { action: "sign-up", email: cleanedEmail });
         await signUp(cleanedEmail, password, {
           full_name: cleanedName,
           referral_code: cleanedReferral || undefined,
         });
         clearLoginAttempts(cleanedEmail);
+        appendSystemLog({ category: "auth", level: "info", message: "Frontend received response", details: { action: "sign-up", email: cleanedEmail } });
         toast.success("Account created", {
           description: "Your wallet is ready and your $1,000 welcome bonus has been credited.",
         });
-        navigate({ to: await resolveHomePath(), replace: true });
+        const home = await resolveHomePath();
+        appendSystemLog({ category: "auth", level: "info", message: "Redirect executed", details: { to: home } });
+        navigate({ to: home, replace: true });
       } else {
+        appendSystemLog({ category: "auth", level: "info", message: "API request sent", details: { action: "sign-in", email: cleanedEmail } });
+        console.info(`[auth] API request sent`, { action: "sign-in", email: cleanedEmail });
         await signIn(cleanedEmail, password);
         clearLoginAttempts(cleanedEmail);
+        appendSystemLog({ category: "auth", level: "info", message: "Frontend received response", details: { action: "sign-in", email: cleanedEmail } });
         toast.success("Welcome back");
         const home = await resolveHomePath();
-        navigate({ to: (search.redirect as "/dashboard") ?? home, replace: true });
+        const destination = (search.redirect as "/dashboard") ?? home;
+        appendSystemLog({ category: "auth", level: "info", message: "Redirect executed", details: { to: destination } });
+        navigate({ to: destination, replace: true });
       }
     } catch (err) {
+      appendSystemLog({
+        category: "auth",
+        level: "error",
+        message: "Authentication failed",
+        details: { mode, email: cleanedEmail, error: err instanceof Error ? err.message : "unknown" },
+      });
+      console.error(`[auth] Authentication failed`, { mode, email: cleanedEmail, error: err });
       if (mode === "login") {
         const state = recordFailedLogin(cleanedEmail);
         if (state.locked) {
