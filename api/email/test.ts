@@ -2,11 +2,11 @@ import { defineEventHandler, readBody, createError } from "h3";
 import { verifySmtpConnection, getSmtpStatus, sendSmtpEmail } from "../../src/lib/email/smtp";
 
 export default defineEventHandler(async (event) => {
-  if (event.node.req.method?.toUpperCase() !== "POST") {
+  if (event.node?.req.method?.toUpperCase() !== "POST") {
     throw createError({ statusCode: 405, statusMessage: "Method not allowed" });
   }
 
-  const body = (await readBody(event)) || {};
+  const body = ((await readBody(event)) ?? {}) as Record<string, unknown>;
   const to = String(body.to || "").trim();
   const subject = String(body.subject || "TrueNorth Financial SMTP Test").trim();
 

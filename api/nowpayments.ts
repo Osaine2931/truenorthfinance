@@ -160,7 +160,7 @@ function createMockInvoice(payload: Record<string, unknown>) {
 }
 
 export default defineEventHandler(async (event) => {
-  const method = event.node.req.method?.toUpperCase();
+  const method = event.node?.req.method?.toUpperCase();
   const path = event.path || "";
   const isWebhook = path.endsWith("/webhook") || path.includes("/webhook");
 
@@ -184,7 +184,9 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 401, statusMessage: "Invalid webhook signature" });
     }
 
-    await creditWalletForDeposit(typeof body === "object" && body ? body : {});
+    await creditWalletForDeposit(
+      typeof body === "object" && body ? (body as Record<string, unknown>) : {},
+    );
 
     return {
       ok: true,
@@ -199,7 +201,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 405, statusMessage: "Method not allowed" });
     }
 
-    const body = (await readBody(event)) || {};
+    const body = ((await readBody(event)) ?? {}) as Record<string, any>;
     const config = getNowPaymentsConfig();
     const validationError = getConfigValidationError(config);
     if (validationError) {

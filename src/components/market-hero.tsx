@@ -25,22 +25,54 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
 
     let candles: Candle[] = [];
     let price = 94;
-    let trend = 1;
     let offset = 0;
     let last = performance.now();
     let raf = 0;
 
+    // Swing-leg generator: price travels in sustained impulse legs with
+    // shallow pullbacks, producing visible higher-highs / lower-lows waves
+    // and candles of widely varying body size (like a real chart).
+    let legDirection: 1 | -1 = 1;
+    let legRemaining = 0;
+    let legStrength = 1;
+
+    const startLeg = (forced?: 1 | -1) => {
+      // Impulse legs run longer than pullbacks.
+      const impulse = forced ?? (Math.random() > 0.34 ? legDirection : (-legDirection as 1 | -1));
+      legDirection = impulse;
+      legRemaining = 4 + Math.floor(Math.random() * 9);
+      legStrength = 1.6 + Math.random() * 2.6;
+    };
+
+    startLeg(1);
+
     const makeCandle = (): Candle => {
-      const drift = trend * 0.9 + (Math.random() - 0.5) * 2.4;
+      if (legRemaining <= 0) startLeg();
+      legRemaining -= 1;
+
+      const momentum = legDirection * legStrength * (0.45 + Math.random() * 1.15);
+      const noise = (Math.random() - 0.5) * 1.6;
       const open = price;
-      const close = Math.max(42, Math.min(158, open + drift));
-      const high = Math.max(open, close) + Math.random() * 4.2 + 1;
-      const low = Math.min(open, close) - Math.random() * 4.2 - 1;
-      const volume = 20 + Math.random() * 55;
+      let close = open + momentum + noise;
+
+      // Keep the wave inside the frame by flipping the leg at the extremes.
+      if (close > 156) {
+        startLeg(-1);
+        close = open - Math.abs(momentum);
+      } else if (close < 44) {
+        startLeg(1);
+        close = open + Math.abs(momentum);
+      }
+      close = Math.max(42, Math.min(158, close));
+
+      const range = Math.abs(close - open);
+      const high = Math.max(open, close) + Math.random() * (1.5 + range * 0.6) + 0.6;
+      const low = Math.min(open, close) - Math.random() * (1.5 + range * 0.6) - 0.6;
+      const volume = 18 + range * 9 + Math.random() * 22;
       price = close;
-      trend = Math.random() > 0.72 ? -trend : trend;
       return { open, close, high, low, volume };
     };
+
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -60,12 +92,32 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    const yFor = (v: number) => {
-      const min = 30;
-      const max = 170;
-      const pad = height * 0.16;
-      return height - pad - ((v - min) / (max - min)) * (height - pad * 2);
+    // Auto-scale to the visible window so bodies stay large and legible
+    // instead of collapsing into flat ticks.
+    let viewLow = 60;
+    let viewHigh = 130;
+
+    const updateScale = () => {
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (const c of candles) {
+        if (c.low < lo) lo = c.low;
+        if (c.high > hi) hi = c.high;
+      }
+      if (!Number.isFinite(lo) || !Number.isFinite(hi)) return;
+      const span = Math.max(hi - lo, 12);
+      const targetLow = lo - span * 0.08;
+      const targetHigh = hi + span * 0.08;
+      viewLow += (targetLow - viewLow) * 0.08;
+      viewHigh += (targetHigh - viewHigh) * 0.08;
     };
+
+    const yFor = (v: number) => {
+      const pad = height * 0.14;
+      const range = Math.max(viewHigh - viewLow, 1);
+      return height - pad - ((v - viewLow) / range) * (height - pad * 2);
+    };
+
 
     const draw = (now: number) => {
       const dt = Math.min(now - last, 60);
@@ -100,6 +152,8 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
         candles.push(makeCandle());
         candles.shift();
       }
+      updateScale();
+
 
       const lineY = height * 0.72;
       ctx.beginPath();

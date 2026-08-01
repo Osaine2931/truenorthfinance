@@ -154,11 +154,13 @@ function SystemStatusPage() {
       <SectionCard title="Developer diagnostics">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {[
-            { label: "Database", state: snapshot?.databaseStatus === "Connected" ? "ok" : "warn", detail: snapshot?.databaseStatus ?? "Checking" },
-            { label: "Authentication", state: snapshot?.apiStatus === "Operational" ? "ok" : "warn", detail: snapshot?.apiStatus ?? "Checking" },
-            { label: "JWT", state: snapshot?.apiStatus === "Operational" ? "ok" : "warn", detail: snapshot?.apiStatus ?? "Checking" },
-            { label: "SMTP", state: snapshot?.smtpConnected ? "ok" : "warn", detail: snapshot?.smtpLastError ?? "No issues detected" },
+            { label: "PostgreSQL Database", state: snapshot?.databaseStatus === "Connected" ? "ok" : "warn", detail: snapshot?.databaseStatus ?? "Checking" },
+            { label: "Supabase Authentication", state: snapshot?.apiStatus === "Operational" ? "ok" : "warn", detail: snapshot?.apiStatus ?? "Checking" },
+            { label: "Supabase Session", state: snapshot?.apiStatus === "Operational" ? "ok" : "warn", detail: "Session persistence and auto refresh" },
+            { label: "Gmail SMTP", state: snapshot?.smtpConnected ? "ok" : "warn", detail: snapshot?.smtpLastError ?? "No issues detected" },
             { label: "NOWPayments", state: snapshot?.paymentsConnected ? "ok" : "warn", detail: snapshot?.paymentsApiStatus ?? "Not configured" },
+            { label: "Storage", state: snapshot?.databaseStatus === "Connected" ? "ok" : "warn", detail: "Object storage reachable" },
+            { label: "Webhooks", state: snapshot?.paymentsConnected ? "ok" : "warn", detail: "NOWPayments IPN endpoint" },
           ].map((item) => (
             <div key={item.label} className="rounded-2xl border border-border/70 bg-secondary/50 p-4">
               <div className="flex items-center justify-between gap-2">

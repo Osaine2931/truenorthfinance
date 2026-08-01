@@ -89,9 +89,9 @@ export async function sendSmtpEmail(message: { to: string; subject: string; html
     appendSystemLog({ category: "smtp", level: "info", message: "Email sent", details: { to: message.to, messageId: info.messageId } });
     return { ok: true, provider: "smtp", id: info.messageId };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Email send failed";
-    lastEmailError = message;
-    appendSystemLog({ category: "smtp", level: "error", message: "Email send failed", details: { error: message, to: message.to } });
+    const failure = error instanceof Error ? error.message : "Email send failed";
+    lastEmailError = failure;
+    appendSystemLog({ category: "smtp", level: "error", message: "Email send failed", details: { error: failure, to: message.to } });
     throw error;
   }
 }

@@ -73,37 +73,22 @@ class SupabaseBackendAdapter implements BackendAdapter {
   }
 
   async signIn(email: string, password: string) {
-    const response = await fetch("/api/auth/sign-in", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload?.message ?? "Unable to sign in");
-    if (payload?.session) {
-      await supabase.auth.setSession({
-        access_token: payload.session.access_token,
-        refresh_token: payload.session.refresh_token,
-      });
-    }
-    return payload;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    return data;
   }
 
   async signUp(email: string, password: string, meta?: Record<string, unknown>) {
-    const response = await fetch("/api/auth/sign-up", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, password, meta }),
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: meta,
+        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+      },
     });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload?.message ?? "Unable to create account");
-    if (payload?.session) {
-      await supabase.auth.setSession({
-        access_token: payload.session.access_token,
-        refresh_token: payload.session.refresh_token,
-      });
-    }
-    return payload;
+    if (error) throw new Error(error.message);
+    return data;
   }
 
   async signOut() {
