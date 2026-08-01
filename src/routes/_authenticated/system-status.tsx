@@ -34,6 +34,17 @@ function StatusDot({ state }: { state: "ok" | "warn" | "error" }) {
   return <span className={`inline-block size-2.5 rounded-full ${classes}`} />;
 }
 
+function StatusBadge({ state }: { state: "ok" | "warn" | "error" }) {
+  const label = state === "ok" ? "PASS" : state === "warn" ? "WARNING" : "FAIL";
+  const classes = {
+    ok: "border-emerald-500/20 bg-emerald-50 text-emerald-700",
+    warn: "border-amber-500/20 bg-amber-50 text-amber-700",
+    error: "border-rose-500/20 bg-rose-50 text-rose-700",
+  }[state];
+
+  return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${classes}`}>{label}</span>;
+}
+
 function SystemStatusPage() {
   const [snapshot, setSnapshot] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -123,12 +134,35 @@ function SystemStatusPage() {
                     <Icon className="size-4 text-royal" />
                     {item.label}
                   </div>
-                  <StatusDot state={item.state as "ok" | "warn" | "error"} />
+                  <div className="flex items-center gap-2">
+                    <StatusBadge state={item.state as "ok" | "warn" | "error"} />
+                    <StatusDot state={item.state as "ok" | "warn" | "error"} />
+                  </div>
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">{item.value}</p>
               </div>
             );
           })}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Developer diagnostics">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {[
+            { label: "Database", state: snapshot?.databaseStatus === "Connected" ? "ok" : "warn", detail: snapshot?.databaseStatus ?? "Checking" },
+            { label: "Authentication", state: snapshot?.apiStatus === "Operational" ? "ok" : "warn", detail: snapshot?.apiStatus ?? "Checking" },
+            { label: "JWT", state: snapshot?.apiStatus === "Operational" ? "ok" : "warn", detail: snapshot?.apiStatus ?? "Checking" },
+            { label: "SMTP", state: snapshot?.smtpConnected ? "ok" : "warn", detail: snapshot?.smtpLastError ?? "No issues detected" },
+            { label: "NOWPayments", state: snapshot?.paymentsConnected ? "ok" : "warn", detail: snapshot?.paymentsApiStatus ?? "Not configured" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl border border-border/70 bg-secondary/50 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-navy">{item.label}</p>
+                <StatusBadge state={item.state as "ok" | "warn" | "error"} />
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">{item.detail}</p>
+            </div>
+          ))}
         </div>
       </SectionCard>
 
