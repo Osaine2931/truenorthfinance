@@ -10,11 +10,7 @@ export function sanitizeInput(value: string): string {
 
 export function validatePassword(password: string) {
   const reasons: string[] = [];
-  if (password.length < 12) reasons.push("Use at least 12 characters.");
-  if (!/[A-Z]/.test(password)) reasons.push("Include at least one uppercase letter.");
-  if (!/[a-z]/.test(password)) reasons.push("Include at least one lowercase letter.");
-  if (!/\d/.test(password)) reasons.push("Include at least one number.");
-  if (!/[^A-Za-z0-9]/.test(password)) reasons.push("Include at least one symbol.");
+  if (password.length < 8) reasons.push("Use at least 8 characters.");
 
   return {
     valid: reasons.length === 0,

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -14,6 +14,11 @@ import {
 import { PageHeader, SectionCard, btnGhost, btnPrimary } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/system-status")({
+  beforeLoad: ({ context }) => {
+    if (!context.isAdmin) {
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   head: () => ({
     meta: [
       { title: "System Status — TrueNorth Financial" },
