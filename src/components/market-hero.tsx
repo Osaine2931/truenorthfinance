@@ -92,12 +92,32 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    const yFor = (v: number) => {
-      const min = 30;
-      const max = 170;
-      const pad = height * 0.16;
-      return height - pad - ((v - min) / (max - min)) * (height - pad * 2);
+    // Auto-scale to the visible window so bodies stay large and legible
+    // instead of collapsing into flat ticks.
+    let viewLow = 60;
+    let viewHigh = 130;
+
+    const updateScale = () => {
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (const c of candles) {
+        if (c.low < lo) lo = c.low;
+        if (c.high > hi) hi = c.high;
+      }
+      if (!Number.isFinite(lo) || !Number.isFinite(hi)) return;
+      const span = Math.max(hi - lo, 12);
+      const targetLow = lo - span * 0.08;
+      const targetHigh = hi + span * 0.08;
+      viewLow += (targetLow - viewLow) * 0.08;
+      viewHigh += (targetHigh - viewHigh) * 0.08;
     };
+
+    const yFor = (v: number) => {
+      const pad = height * 0.14;
+      const range = Math.max(viewHigh - viewLow, 1);
+      return height - pad - ((v - viewLow) / range) * (height - pad * 2);
+    };
+
 
     const draw = (now: number) => {
       const dt = Math.min(now - last, 60);
