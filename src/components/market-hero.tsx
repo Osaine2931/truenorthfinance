@@ -152,6 +152,8 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
         candles.push(makeCandle());
         candles.shift();
       }
+      updateScale();
+
 
       const lineY = height * 0.72;
       ctx.beginPath();
