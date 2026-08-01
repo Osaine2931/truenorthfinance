@@ -11,10 +11,31 @@ export function sanitizeInput(value: string): string {
 export function validatePassword(password: string) {
   const reasons: string[] = [];
   if (password.length < 8) reasons.push("Use at least 8 characters.");
+  if (!/[A-Z]/.test(password)) reasons.push("Include at least one uppercase letter.");
+  if (!/[a-z]/.test(password)) reasons.push("Include at least one lowercase letter.");
+  if (!/\d/.test(password)) reasons.push("Include at least one number.");
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+    reasons.push("Include at least one special character.");
+  }
 
   return {
     valid: reasons.length === 0,
     reasons,
+  };
+}
+
+export function getPasswordValidationSummary(password: string) {
+  const checklist = [
+    { label: "8+ characters", ok: password.length >= 8 },
+    { label: "Uppercase", ok: /[A-Z]/.test(password) },
+    { label: "Lowercase", ok: /[a-z]/.test(password) },
+    { label: "Number", ok: /\d/.test(password) },
+    { label: "Special character", ok: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password) },
+  ];
+
+  return {
+    valid: checklist.every((item) => item.ok),
+    checklist,
   };
 }
 

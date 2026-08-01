@@ -59,13 +59,6 @@ export function useCreateDeposit() {
       tx_hash?: string | null;
     }) => {
       const uid = await currentUserId();
-      const invoice = await createNowPaymentsInvoice({
-        amount: input.amount,
-        currency: "USD",
-        cryptoCurrency: input.crypto_symbol,
-        orderId: `deposit-${uid}-${Date.now()}`,
-        orderDescription: `${input.crypto_symbol} deposit`,
-      });
 
       const { data: deposit, error } = await supabase
         .from("deposits")
@@ -73,11 +66,24 @@ export function useCreateDeposit() {
           ...input,
           user_id: uid,
           status: "waiting",
-          wallet_address: input.wallet_address ?? invoice.pay_address ?? null,
+          wallet_address: input.wallet_address ?? null,
           tx_hash: input.tx_hash ?? null,
         })
         .select()
         .single();
+      if (error) throw new Error(error.message);
+
+      const invoice = await createNowPaymentsInvoice({
+        amount: input.amount,
+        currency: "USD",
+        cryptoCurrency: input.crypto_symbol,
+        orderId: `deposit-${deposit.id}`,
+        orderDescription: `${input.crypto_symbol} deposit`,
+        userId: uid,
+        depositId: deposit.id,
+        paymentAddress: input.wallet_address ?? undefined,
+      });
+
       if (error) throw new Error(error.message);
 
       await supabase.from("transactions").insert({
@@ -104,7 +110,9 @@ export function useCreateDeposit() {
         deposit,
         invoice: {
           invoiceId: invoice.invoice_id,
+          paymentId: invoice.payment_id,
           paymentAddress: invoice.pay_address,
+          paymentUrl: invoice.invoice_url,
           cryptoAmount: invoice.pay_amount,
           qrCodeUrl: invoice.qr_code_url ?? invoice.qrcode,
           expiresAt: invoice.expires_at,

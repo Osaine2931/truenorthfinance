@@ -1,5 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 
+const DEFAULT_SITE_URL = "https://truenorthfinancial.site";
+
+function getSiteUrl() {
+  const configured =
+    (typeof import.meta !== "undefined" && import.meta.env
+      ? import.meta.env.VITE_SITE_URL || import.meta.env.VITE_APP_URL
+      : undefined) ?? process.env.SITE_URL ?? process.env.VITE_APP_URL;
+  return (configured || DEFAULT_SITE_URL).replace(/\/$/, "");
+}
+
 export type BackendError = { message: string };
 
 export interface BackendSelectOptions {
@@ -98,7 +108,7 @@ class SupabaseBackendAdapter implements BackendAdapter {
 
   async requestPasswordReset(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${getSiteUrl()}/reset-password`,
     });
     if (error) throw new Error(error.message);
   }
