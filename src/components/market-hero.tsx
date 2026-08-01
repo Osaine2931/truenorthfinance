@@ -110,7 +110,6 @@ export function MarketHeroCanvas({ className = "" }: { className?: string }) {
       const targetHigh = hi + span * 0.08;
       viewLow += (targetLow - viewLow) * 0.08;
       viewHigh += (targetHigh - viewHigh) * 0.08;
-      (window as unknown as Record<string, unknown>).__scale = [viewLow, viewHigh, height];
     };
 
     const yFor = (v: number) => {
