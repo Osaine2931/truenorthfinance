@@ -60,18 +60,8 @@ function ResetPassword() {
             className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             placeholder="New password"
           />
-          {password.length > 0 ? (
-            <div className="space-y-1 rounded-lg border border-border/70 bg-secondary/60 p-3 text-xs text-muted-foreground">
-              {passwordValidation.checklist.map((item) => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <span className={item.ok ? "text-emerald-600" : "text-amber-600"}>
-                    {item.ok ? "●" : "○"}
-                  </span>
-                  <span>{item.label}</span>
-                </div>
-              ))}
-            </div>
-          ) : null}
+          <PasswordRequirements password={password} />
+
           <button
             type="submit"
             disabled={loading || !passwordValidation.valid}
