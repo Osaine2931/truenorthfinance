@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { backend, type BackendError } from "./backend";
-import { sendLoginAlertEmail, sendWelcomeEmail } from "@/lib/email";
+import { sendLoginAlertEmail, sendSecurityAlertEmail, sendWelcomeEmail } from "@/lib/email";
 import { validatePassword } from "@/lib/security";
 
 const SUPER_ADMIN_EMAIL = "applicationsoftware2@gmail.com";
