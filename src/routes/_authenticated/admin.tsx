@@ -1405,7 +1405,10 @@ function SettingsTab() {
   const [edits, setEdits] = useState<Record<string, string>>({});
 
   return (
-    <SectionCard title="Site settings" description="Platform-wide values used across the app.">
+    <div className="space-y-6">
+      <ClearDevelopmentUsersCard />
+      <SectionCard title="Site settings" description="Platform-wide values used across the app.">
+
       {settings.isLoading ? (
         <RowsSkeleton rows={3} />
       ) : (
