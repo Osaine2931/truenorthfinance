@@ -194,8 +194,63 @@ export async function requestPasswordReset(email: string) {
 }
 
 export async function updatePassword(password: string) {
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) throw new Error(passwordCheck.reasons[0]);
   await backend.updatePassword(password);
 }
+
+/**
+ * Verifies the current password, rotates it, then revokes every other session.
+ * Sends a "Password changed" email and records the activity (best effort).
+ */
+export async function changePassword(currentPassword: string, newPassword: string) {
+  const check = validatePassword(newPassword);
+  if (!check.valid) throw new Error(check.reasons[0]);
+  if (currentPassword === newPassword) {
+    throw new Error("Your new password must be different from the current one.");
+  }
+
+  const user = await currentUser();
+  if (!user?.email) throw new Error("You must be signed in to change your password.");
+
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  });
+  if (verifyError) throw new Error("Your current password is incorrect.");
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw new Error(error.message);
+
+  // Invalidate every other active session for this account.
+  try {
+    await supabase.auth.signOut({ scope: "others" });
+  } catch (err) {
+    console.error("[auth] failed to revoke other sessions", err);
+  }
+
+  try {
+    await sendSecurityAlertEmail({
+      email: user.email,
+      subject: "Your TrueNorth Financial password was changed",
+    });
+  } catch (err) {
+    console.error("[auth] password changed email failed", err);
+  }
+
+  try {
+    await supabase.from("activities").insert({
+      user_id: user.id,
+      action: "Password changed",
+      detail: "Password updated and all other sessions were signed out.",
+    });
+  } catch (err) {
+    console.error("[auth] activity log failed", err);
+  }
+
+  return true;
+}
+
 
 export { SUPER_ADMIN_EMAIL };
 
