@@ -3,8 +3,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
+import { PasswordRequirements } from "@/components/password-field";
 import { updatePassword } from "@/lib/api/auth";
 import { getPasswordValidationSummary, validatePassword } from "@/lib/security";
+
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
