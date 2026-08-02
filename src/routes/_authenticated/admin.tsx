@@ -1437,6 +1437,57 @@ function SettingsTab() {
           ))}
         </div>
       )}
+      </SectionCard>
+    </div>
+  );
+}
+
+function ClearDevelopmentUsersCard() {
+  const [confirmText, setConfirmText] = useState("");
+  const [running, setRunning] = useState(false);
+  const queryClient = useQueryClient();
+
+  async function run() {
+    setRunning(true);
+    try {
+      const result = await clearDevelopmentUsers();
+      toast.success(`Deleted ${result.deleted} development account(s)`, {
+        description: result.failures.length
+          ? `Could not delete: ${result.failures.join(", ")}`
+          : "Admin accounts were preserved.",
+      });
+      setConfirmText("");
+      await queryClient.invalidateQueries();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Cleanup failed");
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <SectionCard
+      title="Clear development users"
+      description="Permanently deletes every non-admin account with its wallet, transactions, investments, deposits, withdrawals and tickets. Admin accounts are never touched."
+    >
+      <div className="flex flex-wrap items-end gap-3 p-5">
+        <Field label='Type "DELETE" to confirm'>
+          <input
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            className={inputClass}
+            placeholder="DELETE"
+          />
+        </Field>
+        <button
+          onClick={run}
+          disabled={running || confirmText.trim().toUpperCase() !== "DELETE"}
+          className="inline-flex items-center gap-2 rounded-lg bg-destructive px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+        >
+          {running ? "Deleting…" : "Delete all non-admin users"}
+        </button>
+      </div>
     </SectionCard>
   );
 }
+
