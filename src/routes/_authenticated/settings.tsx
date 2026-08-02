@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { PageHeader, SectionCard, Field, inputClass } from "@/components/ui-kit";
+import { Loader2 } from "lucide-react";
+import { PageHeader, SectionCard, Field, inputClass, btnPrimary } from "@/components/ui-kit";
+import { PasswordRequirements } from "@/components/password-field";
+import { changePassword } from "@/lib/api/auth";
+import { getPasswordValidationSummary } from "@/lib/security";
+
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — TrueNorth Financial" }] }),
