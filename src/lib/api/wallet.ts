@@ -84,7 +84,8 @@ export function useCreateDeposit() {
         paymentAddress: input.wallet_address ?? undefined,
       });
 
-      if (error) throw new Error(error.message);
+
+
 
       await supabase.from("transactions").insert({
         user_id: uid,
