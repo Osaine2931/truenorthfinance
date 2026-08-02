@@ -39,6 +39,19 @@ export function getPasswordValidationSummary(password: string) {
   };
 }
 
+/** Strength meter shared by registration, reset and change-password forms. */
+export function getPasswordStrength(password: string) {
+  const { checklist } = getPasswordValidationSummary(password);
+  let score = checklist.filter((item) => item.ok).length;
+  if (password.length >= 14) score += 1;
+  const percent = Math.min(100, Math.round((score / 6) * 100));
+  if (score <= 2) return { score, percent, label: "Weak", barClass: "bg-destructive" };
+  if (score <= 4) return { score, percent, label: "Fair", barClass: "bg-amber-500" };
+  if (score === 5) return { score, percent, label: "Strong", barClass: "bg-emerald-500" };
+  return { score, percent, label: "Excellent", barClass: "bg-emerald-600" };
+}
+
+
 export function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email) && email.length <= 255;
 }
