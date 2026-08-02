@@ -80,9 +80,97 @@ function Settings() {
           />
         </div>
       </SectionCard>
+      <ChangePasswordCard />
     </div>
   );
 }
+
+function ChangePasswordCard() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const valid = getPasswordValidationSummary(next).valid;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (next !== confirm) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await changePassword(current, next);
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+      toast.success("Password changed", {
+        description: "All other active sessions have been signed out.",
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not change your password.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <SectionCard
+      title="Change password"
+      description="Update your password. Every other signed-in device will be signed out."
+    >
+      <form onSubmit={handleSubmit} className="grid gap-4 p-5 md:max-w-md">
+        <Field label="Current password">
+          <input
+            type="password"
+            required
+            autoComplete="current-password"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+            className={inputClass}
+            placeholder="••••••••"
+          />
+        </Field>
+        <div>
+          <Field label="New password">
+            <input
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={next}
+              onChange={(e) => setNext(e.target.value)}
+              className={inputClass}
+              placeholder="••••••••"
+            />
+          </Field>
+          <PasswordRequirements password={next} />
+        </div>
+        <Field label="Confirm new password">
+          <input
+            type="password"
+            required
+            minLength={8}
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            className={inputClass}
+            placeholder="••••••••"
+          />
+        </Field>
+        <button
+          type="submit"
+          disabled={loading || !valid || !current || next !== confirm}
+          className={`${btnPrimary} justify-center disabled:opacity-50`}
+        >
+          {loading && <Loader2 className="size-4 animate-spin" />}
+          Update password
+        </button>
+      </form>
+    </SectionCard>
+  );
+}
+
 
 function Toggle({
   label,
