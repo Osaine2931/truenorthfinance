@@ -272,18 +272,8 @@ function AuthPage() {
                 className={inputClass}
                 placeholder="••••••••"
               />
-              {mode === "register" && password.length > 0 ? (
-                <div className="mt-2 space-y-1 rounded-lg border border-border/70 bg-secondary/60 p-3 text-xs text-muted-foreground">
-                  {passwordValidation.checklist.map((item) => (
-                    <div key={item.label} className="flex items-center gap-2">
-                      <span className={item.ok ? "text-emerald-600" : "text-amber-600"}>
-                        {item.ok ? "●" : "○"}
-                      </span>
-                      <span>{item.label}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
+              {mode === "register" ? <PasswordRequirements password={password} /> : null}
+
             </div>
 
             {mode === "register" && (
