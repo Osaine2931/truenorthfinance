@@ -3,6 +3,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { BrandLockup } from "@/components/brand";
+import { PasswordRequirements } from "@/components/password-field";
+
 import { useRedirectIfAuthenticated, resolveHomePath } from "@/hooks/use-session-redirect";
 import { signIn, signUp } from "@/lib/api/auth";
 import {
