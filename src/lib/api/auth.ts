@@ -110,10 +110,12 @@ async function sendPostAuthEmails(
 /** Session + role primitives. Backend swap point: replace bodies with JWT calls. */
 
 export async function signIn(email: string, password: string) {
-  const passwordCheck = validatePassword(password);
-  if (!passwordCheck.valid) throw new Error(passwordCheck.reasons[0]);
+  // NOTE: never apply the signup password policy here — existing accounts may
+  // have older passwords and would be locked out before reaching the backend.
+  if (!password) throw new Error("Enter your password.");
 
   const data = await backend.signIn(email, password);
+
   await syncSupabaseSession(data);
   const user =
     (
