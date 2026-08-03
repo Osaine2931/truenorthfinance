@@ -150,13 +150,19 @@ function AuthPage() {
       });
       console.error(`[auth] Authentication failed`, { mode, email: cleanedEmail, error: err });
       if (mode === "login") {
-        const state = recordFailedLogin(cleanedEmail);
-        if (state.locked) {
-          toast.error(`Account temporarily locked. Try again in ${state.minutesRemaining} minute(s).`);
+        const raw = err instanceof Error ? err.message : "";
+        const badCredentials = /invalid login credentials|invalid email or password/i.test(raw);
+        if (!badCredentials && raw) {
+          toast.error(raw);
         } else {
-          toast.error("Invalid email or password.", {
-            description: `${state.attemptsRemaining} attempt(s) remaining before a temporary lock.`,
-          });
+          const state = recordFailedLogin(cleanedEmail);
+          if (state.locked) {
+            toast.error(`Account temporarily locked. Try again in ${state.minutesRemaining} minute(s).`);
+          } else {
+            toast.error("Invalid email or password.", {
+              description: `${state.attemptsRemaining} attempt(s) remaining before a temporary lock.`,
+            });
+          }
         }
       } else {
         const raw = err instanceof Error ? err.message : "";
