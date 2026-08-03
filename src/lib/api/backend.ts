@@ -3,12 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 const DEFAULT_SITE_URL = "https://truenorthfinancial.site";
 
 function getSiteUrl() {
+  // Prefer the origin the user is actually on (custom domain, www, Vercel URL)
+  // so reset links come back to the same site instead of a hardcoded host.
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin.replace(/\/$/, "");
+  }
   const configured =
     (typeof import.meta !== "undefined" && import.meta.env
       ? import.meta.env.VITE_SITE_URL || import.meta.env.VITE_APP_URL
       : undefined) ?? process.env.SITE_URL ?? process.env.VITE_APP_URL;
   return (configured || DEFAULT_SITE_URL).replace(/\/$/, "");
 }
+
 
 export type BackendError = { message: string };
 
