@@ -27,12 +27,23 @@ import {
   btnPrimary,
   btnGhost,
 } from "@/components/ui-kit";
+import { PasswordRequirements } from "@/components/password-field";
+import { changePassword, updatePassword } from "@/lib/api/auth";
+import { getPasswordValidationSummary } from "@/lib/security";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
       { title: "Profile — TrueNorth Financial" },
       { name: "description", content: "Manage your investor profile and contact details." },
+      { property: "og:title", content: "Profile — TrueNorth Financial" },
+      {
+        property: "og:description",
+        content: "Manage your investor profile and contact details.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ProfilePage,
@@ -210,6 +221,132 @@ function ProfilePage() {
           </div>
         </div>
       </SectionCard>
+      <ProfilePasswordCard />
     </div>
+  );
+}
+
+function ProfilePasswordCard() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
+  const valid = getPasswordValidationSummary(next).valid;
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+      const providers = data.user?.app_metadata?.providers;
+      setHasPassword(Array.isArray(providers) && providers.includes("email"));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (next !== confirm) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (hasPassword) {
+        await changePassword(current, next);
+        toast.success("Password changed", {
+          description: "All other active sessions have been signed out.",
+        });
+      } else {
+        await updatePassword(next);
+        try {
+          await supabase.auth.signOut({ scope: "others" });
+        } catch (error) {
+          console.error("[auth] failed to revoke other sessions", error);
+        }
+        setHasPassword(true);
+        toast.success("Password created", {
+          description: "You can now sign in with this email and password.",
+        });
+      }
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update your password.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <SectionCard
+      title={hasPassword === false ? "Create a password" : "Change password"}
+      description={
+        hasPassword === false
+          ? "This account was created with Google. Create a password to enable email and password sign-in."
+          : "Verify your current password, then choose a new secure password."
+      }
+    >
+      {hasPassword === null ? (
+        <div className="flex items-center gap-2 p-5 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Checking sign-in methods…
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="grid gap-4 p-5 md:max-w-md">
+          {hasPassword && (
+            <Field label="Current password">
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                value={current}
+                onChange={(event) => setCurrent(event.target.value)}
+                className={inputClass}
+                placeholder="••••••••"
+              />
+            </Field>
+          )}
+          <div>
+            <Field label={hasPassword ? "New password" : "Password"}>
+              <input
+                type="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                value={next}
+                onChange={(event) => setNext(event.target.value)}
+                className={inputClass}
+                placeholder="••••••••"
+              />
+            </Field>
+            <PasswordRequirements password={next} />
+          </div>
+          <Field label={hasPassword ? "Confirm new password" : "Confirm password"}>
+            <input
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={confirm}
+              onChange={(event) => setConfirm(event.target.value)}
+              className={inputClass}
+              placeholder="••••••••"
+            />
+          </Field>
+          <button
+            type="submit"
+            disabled={loading || !valid || next !== confirm || (hasPassword && !current)}
+            className={`${btnPrimary} justify-center disabled:opacity-50`}
+          >
+            {loading && <Loader2 className="size-4 animate-spin" />}
+            {hasPassword ? "Update password" : "Create password"}
+          </button>
+        </form>
+      )}
+    </SectionCard>
   );
 }
