@@ -115,7 +115,7 @@ export type Database = {
           sort_order: number
           symbol: string
           updated_at: string
-          wallet_address: string
+          wallet_address: string | null
         }
         Insert: {
           created_at?: string
@@ -127,7 +127,7 @@ export type Database = {
           sort_order?: number
           symbol: string
           updated_at?: string
-          wallet_address: string
+          wallet_address?: string | null
         }
         Update: {
           created_at?: string
@@ -139,7 +139,7 @@ export type Database = {
           sort_order?: number
           symbol?: string
           updated_at?: string
-          wallet_address?: string
+          wallet_address?: string | null
         }
         Relationships: []
       }
@@ -355,6 +355,86 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          actually_paid: number | null
+          amount: number
+          created_at: string
+          crypto_currency: string | null
+          currency: string
+          deposit_id: string | null
+          expires_at: string | null
+          id: string
+          invoice_id: string | null
+          metadata: Json | null
+          network: string | null
+          order_id: string
+          pay_amount: number | null
+          payment_address: string | null
+          payment_id: string | null
+          payment_url: string | null
+          provider: string
+          qr_code_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actually_paid?: number | null
+          amount?: number
+          created_at?: string
+          crypto_currency?: string | null
+          currency?: string
+          deposit_id?: string | null
+          expires_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          metadata?: Json | null
+          network?: string | null
+          order_id: string
+          pay_amount?: number | null
+          payment_address?: string | null
+          payment_id?: string | null
+          payment_url?: string | null
+          provider?: string
+          qr_code_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actually_paid?: number | null
+          amount?: number
+          created_at?: string
+          crypto_currency?: string | null
+          currency?: string
+          deposit_id?: string | null
+          expires_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          metadata?: Json | null
+          network?: string | null
+          order_id?: string
+          pay_amount?: number | null
+          payment_address?: string | null
+          payment_id?: string | null
+          payment_url?: string | null
+          provider?: string
+          qr_code_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_deposit_id_fkey"
+            columns: ["deposit_id"]
+            isOneToOne: false
+            referencedRelation: "deposits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -488,6 +568,7 @@ export type Database = {
           description: string | null
           direction: string
           id: string
+          reference: string | null
           status: string
           type: string
           user_id: string
@@ -498,6 +579,7 @@ export type Database = {
           description?: string | null
           direction?: string
           id?: string
+          reference?: string | null
           status?: string
           type: string
           user_id: string
@@ -508,6 +590,7 @@ export type Database = {
           description?: string | null
           direction?: string
           id?: string
+          reference?: string | null
           status?: string
           type?: string
           user_id?: string
@@ -618,6 +701,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_investment: {
+        Args: { p_amount: number; p_plan_id: string }
+        Returns: {
+          amount: number
+          created_at: string
+          ends_at: string | null
+          expected_profit: number
+          id: string
+          plan_id: string | null
+          plan_name: string | null
+          profit_earned: number
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "investments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      credit_deposit: {
+        Args: {
+          p_deposit_id: string
+          p_paid_amount?: number
+          p_payment_id?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -625,6 +740,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      process_investment_maturity: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
