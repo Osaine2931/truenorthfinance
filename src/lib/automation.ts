@@ -1,9 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
 function getAutomationClient() {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const serviceKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env["SUPABASE_URL"];
+  const serviceKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 
   if (!url || !serviceKey) {
     throw new Error("Missing Supabase service credentials for automation jobs");
@@ -20,9 +19,11 @@ function getAutomationClient() {
 type AutomationClient = ReturnType<typeof getAutomationClient>;
 
 async function upsertSetting(client: AutomationClient, key: string, value: string) {
-  const { error } = await (client.from("site_settings") as unknown as {
-    upsert: (payload: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
-  }).upsert({ key, value });
+  const { error } = await (
+    client.from("site_settings") as unknown as {
+      upsert: (payload: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+    }
+  ).upsert({ key, value });
   if (error) {
     console.error(`[automation] failed to save setting ${key}`, error.message);
   }
@@ -70,94 +71,79 @@ export function createMonitoringSnapshot(input: {
   };
 }
 
+/**
+ * Scheduled jobs.
+ *
+ * 1. Reconciles pending NOWPayments payments against the live API (covers a
+ *    missed/failed IPN delivery) — crediting stays idempotent via credit_deposit.
+ * 2. Progresses and matures active investments through process_investment_maturity,
+ *    a single atomic, idempotent database transaction.
+ */
 export async function runAutomationJobs() {
   const supabase = getAutomationClient();
   const startedAt = new Date().toISOString();
   const summary = {
     processedInvestments: 0,
     completedInvestments: 0,
-    updatedWallets: 0,
-    notifications: 0,
-    emails: 0,
-    status: "ok",
+    reconciledPayments: 0,
+    status: "ok" as string,
   };
 
   try {
-    const { data: investments, error } = await supabase
-      .from("investments")
-      .select("*")
-      .eq("status", "active");
+    // --- payment reconciliation -------------------------------------------
+    const { getNowPaymentsPayment, shouldCredit, missingNowPaymentsCredentials } = await import(
+      "./payments/nowpayments.server"
+    );
 
-    if (error) throw error;
+    if (!missingNowPaymentsCredentials().includes("NOWPAYMENTS_API_KEY")) {
+      const { data: pending } = await supabase
+        .from("payments")
+        .select("payment_id, deposit_id, status")
+        .not("payment_id", "is", null)
+        .in("status", ["waiting", "confirming", "confirmed", "sending", "partially_paid"])
+        .limit(50);
 
-    for (const investment of investments ?? []) {
-      const start = new Date(investment.started_at).getTime();
-      const end = investment.ends_at ? new Date(investment.ends_at).getTime() : start + 86400000 * 30;
-      const total = Math.max(1, end - start);
-      const elapsed = Math.min(total, Date.now() - start);
-      const progress = Math.max(0, Math.min(100, (elapsed / total) * 100));
-      const expectedProfit = Number(investment.expected_profit ?? 0);
-      const currentProfit = Number((expectedProfit * (progress / 100)).toFixed(2));
-      const matured = Date.now() >= end;
-
-      if (matured) {
-        const { data: wallet } = await supabase
-          .from("wallets")
-          .select("*")
-          .eq("user_id", investment.user_id)
-          .maybeSingle();
-
-        if (wallet) {
-          const nextAvailableBalance = Number(wallet.available_balance ?? 0) + expectedProfit;
-          const nextTotalProfit = Number(wallet.total_profit ?? 0) + expectedProfit;
-          await supabase
-            .from("wallets")
-            .update({
-              available_balance: nextAvailableBalance,
-              total_profit: nextTotalProfit,
-            })
-            .eq("user_id", investment.user_id);
-          summary.updatedWallets += 1;
-        }
+      for (const payment of pending ?? []) {
+        if (!payment.payment_id || !payment.deposit_id) continue;
+        const live = await getNowPaymentsPayment(payment.payment_id);
+        if (!live) continue;
 
         await supabase
-          .from("investments")
-          .update({ status: "completed", profit_earned: expectedProfit })
-          .eq("id", investment.id);
+          .from("payments")
+          .update({
+            status: live.payment_status,
+            actually_paid: Number(live.actually_paid ?? 0) || null,
+          })
+          .eq("payment_id", payment.payment_id);
 
-        await supabase.from("transactions").insert({
-          user_id: investment.user_id,
-          type: "Investment completed",
-          direction: "in",
-          amount: expectedProfit,
-          status: "completed",
-          description: `${investment.plan_name ?? "Investment"} matured and paid out`,
-        });
-
-        await supabase.from("activities").insert({
-          user_id: investment.user_id,
-          action: "Investment completed",
-          detail: `${investment.plan_name ?? "Investment"} reached maturity`,
-        });
-
-        await supabase.from("notifications").insert({
-          user_id: investment.user_id,
-          title: "Investment completed",
-          body: `Your ${investment.plan_name ?? "investment"} has matured and profits were credited.`,
-          kind: "success",
-        });
-
-        summary.completedInvestments += 1;
-        summary.notifications += 1;
-      } else {
-        await supabase.from("investments").update({ profit_earned: currentProfit }).eq("id", investment.id);
+        if (shouldCredit(live.payment_status)) {
+          const { error } = await supabase.rpc("credit_deposit", {
+            p_deposit_id: payment.deposit_id,
+            p_paid_amount: null,
+            p_payment_id: payment.payment_id,
+            p_status: live.payment_status,
+          });
+          if (error) {
+            console.error("[automation] credit_deposit failed", error.message);
+          } else {
+            summary.reconciledPayments += 1;
+          }
+        }
       }
-
-      summary.processedInvestments += 1;
     }
 
+    // --- investment maturity ----------------------------------------------
+    const { data: maturity, error: maturityError } = await supabase.rpc(
+      "process_investment_maturity",
+    );
+    if (maturityError) throw new Error(maturityError.message);
+
+    const result = (maturity ?? {}) as { processed?: number; completed?: number };
+    summary.processedInvestments = result.processed ?? 0;
+    summary.completedInvestments = result.completed ?? 0;
+
     await upsertSetting(supabase, "automation_last_run", startedAt);
-    await upsertSetting(supabase, "automation_run_count", String(Number(new Date().getTime())));
+    await upsertSetting(supabase, "automation_last_status", "ok");
 
     return summary;
   } catch (error) {

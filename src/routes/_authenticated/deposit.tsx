@@ -57,31 +57,37 @@ function DepositPage() {
 
   const [methodId, setMethodId] = useState<string | null>(null);
   const [amount, setAmount] = useState(MIN_DEPOSIT);
-  const [txHash, setTxHash] = useState("");
   const [copied, setCopied] = useState(false);
-  const [invoice, setInvoice] = useState<null | {
-    amount: number;
-    crypto: string;
-    cryptoAmount: string;
-    paymentAddress: string;
-    qrCodeUrl?: string;
-    expiresAt?: string;
-    status: string;
-    invoiceId: string;
-    paymentId?: string;
-    paymentUrl?: string;
-  }>(null);
+  const [invoice, setInvoice] = useState<DepositInvoice | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
 
   const list = methods.data ?? [];
   const method = list.find((m) => m.id === methodId) ?? list[0] ?? null;
 
   async function copyAddress() {
-    if (!method) return;
-    await navigator.clipboard.writeText(method.wallet_address);
+    if (!invoice?.paymentAddress) return;
+    await navigator.clipboard.writeText(invoice.paymentAddress);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   }
+
+  // QR encodes exactly the NOWPayments address + amount for this payment.
+  useEffect(() => {
+    let cancelled = false;
+    if (!invoice?.paymentAddress) {
+      setQrDataUrl(null);
+      return;
+    }
+    void (async () => {
+      const QRCode = (await import("qrcode")).default;
+      const url = await QRCode.toDataURL(invoice.paymentAddress, { width: 320, margin: 1 });
+      if (!cancelled) setQrDataUrl(url);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [invoice?.paymentAddress]);
 
   useEffect(() => {
     if (!invoice?.expiresAt) return;
@@ -98,37 +104,23 @@ function DepositPage() {
   }, [invoice?.expiresAt]);
 
   async function submit() {
-    if (!method) return;
+    if (!method) {
+      toast.error("Select a cryptocurrency to continue.");
+      return;
+    }
     if (amount < MIN_DEPOSIT) {
       toast.error(`Minimum deposit is ${formatCurrency(MIN_DEPOSIT, 0)}`);
       return;
     }
     try {
-      const response = await createDeposit.mutateAsync({
-        amount,
-        crypto_symbol: method.symbol,
-        network: method.network,
-        wallet_address: method.wallet_address,
-        tx_hash: txHash || null,
-      });
-      setInvoice({
-        amount: response?.invoice?.amount ?? amount,
-        crypto: response?.invoice?.crypto ?? method.symbol,
-        cryptoAmount: response?.invoice?.cryptoAmount ?? (amount / 65000).toFixed(4),
-        paymentAddress: response?.invoice?.paymentAddress ?? method.wallet_address ?? "",
-        qrCodeUrl: response?.invoice?.qrCodeUrl ?? undefined,
-        expiresAt: response?.invoice?.expiresAt ?? undefined,
-        status: response?.invoice?.status ?? "waiting",
-        invoiceId: response?.invoice?.invoiceId ?? "",
-        paymentId: response?.invoice?.paymentId,
-        paymentUrl: response?.invoice?.paymentUrl,
-      });
-      setTxHash("");
+      const created = await createDeposit.mutateAsync({ methodId: method.id, amount });
+      setInvoice(created);
+      deposits.refetch();
       toast.success("Payment invoice created", {
-        description: "Send the crypto to the address below to complete funding.",
+        description: "Send the exact crypto amount to the address below to complete funding.",
       });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Deposit failed");
+      toast.error(err instanceof Error ? err.message : "Unable to create deposit. Please try again.");
     }
   }
 
@@ -235,18 +227,24 @@ function DepositPage() {
                   Supported for deposits only: Bitcoin, Ethereum, USDT TRC20, USDT ERC20, USDT
                   BEP20, BNB, and Solana.
                 </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <code className="min-w-0 flex-1 truncate rounded-xl bg-card px-3 py-2 text-xs">
-                    {invoice?.paymentAddress || method.wallet_address}
-                  </code>
-                  <button
-                    onClick={copyAddress}
-                    className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card text-royal"
-                    aria-label="Copy address"
-                  >
-                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  </button>
-                </div>
+                {invoice?.paymentAddress ? (
+                  <div className="mt-2 flex items-center gap-2">
+                    <code className="min-w-0 flex-1 truncate rounded-xl bg-card px-3 py-2 text-xs">
+                      {invoice.paymentAddress}
+                    </code>
+                    <button
+                      onClick={copyAddress}
+                      className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card text-royal"
+                      aria-label="Copy address"
+                    >
+                      {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="mt-2 rounded-xl border border-dashed border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+                    Your payment address will appear here once the invoice is created.
+                  </p>
+                )}
               </div>
 
               <Field label="Amount (USD)">
@@ -269,24 +267,13 @@ function DepositPage() {
                   </button>
                 ))}
               </div>
-              <Field
-                label="Transaction hash (optional)"
-                hint="Adding the hash speeds up confirmation."
-              >
-                <input
-                  value={txHash}
-                  onChange={(e) => setTxHash(e.target.value)}
-                  className={inputClass}
-                  placeholder="0x…"
-                />
-              </Field>
               <button
                 onClick={submit}
                 disabled={createDeposit.isPending}
                 className={`${btnPrimary} w-full`}
               >
                 {createDeposit.isPending && <Loader2 className="size-4 animate-spin" />}
-                Generate NOWPayments invoice
+                Generate payment address
               </button>
             </div>
           )}
@@ -297,7 +284,7 @@ function DepositPage() {
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-royal">Invoice created</p>
                   <p className="font-display text-xl font-semibold text-navy">
-                    {formatCurrency(invoice.amount, 0)} · {invoice.crypto}
+                    {formatCurrency(invoice.amount, 0)} · {invoice.payCurrency}
                   </p>
                 </div>
                 <div className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-royal">
@@ -316,30 +303,32 @@ function DepositPage() {
                     <Clock3 className="size-4 text-royal" /> Countdown
                   </div>
                   <p className="mt-1 text-muted-foreground">
-                    {Math.floor(countdown / 60)}m {countdown % 60}s
+                    {invoice.expiresAt
+                      ? `${Math.floor(countdown / 60)}m ${countdown % 60}s`
+                      : "No expiry"}
                   </p>
                 </div>
               </div>
               <div className="rounded-xl bg-white/70 p-3 text-sm">
                 <div className="flex items-center gap-2 font-semibold text-navy">
-                  <QrCode className="size-4 text-royal" /> Crypto amount
+                  <QrCode className="size-4 text-royal" /> Send exactly
                 </div>
                 <p className="mt-1 text-muted-foreground">
-                  {invoice.cryptoAmount} {invoice.crypto}
+                  {invoice.payAmount} {invoice.payCurrency}
+                  {invoice.network ? ` · ${invoice.network}` : ""}
                 </p>
               </div>
-              {invoice.qrCodeUrl ? (
+              {qrDataUrl ? (
                 <img
-                  src={invoice.qrCodeUrl}
-                  alt="QR code"
+                  src={qrDataUrl}
+                  alt={`QR code for ${invoice.payCurrency} payment address`}
                   className="mx-auto h-40 w-40 rounded-2xl border border-border bg-white p-2"
                 />
               ) : null}
               <div className="rounded-xl border border-border/70 bg-card/70 p-3 text-xs text-muted-foreground space-y-1">
-                <p>Payment address: {invoice.paymentAddress}</p>
-                <p>Invoice ID: {invoice.invoiceId}</p>
-                {invoice.paymentId ? <p>Payment ID: {invoice.paymentId}</p> : null}
-                {invoice.paymentUrl ? <p>Payment URL: {invoice.paymentUrl}</p> : null}
+                <p className="break-all">Payment address: {invoice.paymentAddress}</p>
+                <p>Payment ID: {invoice.paymentId}</p>
+                <p>Reference: {invoice.orderId}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link
