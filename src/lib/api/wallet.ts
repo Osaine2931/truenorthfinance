@@ -48,81 +48,17 @@ export function useWithdrawals() {
   });
 }
 
+/**
+ * Deposits are created server-side: the server verifies the session, validates
+ * the amount/method, inserts the deposit and calls the live NOWPayments API.
+ * The payment address returned is always the real one from NOWPayments.
+ */
 export function useCreateDeposit() {
   const invalidate = useInvalidate();
+  const createInvoice = useServerFn(createDepositInvoice);
   return useMutation({
-    mutationFn: async (input: {
-      amount: number;
-      crypto_symbol: string;
-      network: string | null;
-      wallet_address: string | null;
-      tx_hash?: string | null;
-    }) => {
-      const uid = await currentUserId();
-
-      const { data: deposit, error } = await supabase
-        .from("deposits")
-        .insert({
-          ...input,
-          user_id: uid,
-          status: "waiting",
-          wallet_address: input.wallet_address ?? null,
-          tx_hash: input.tx_hash ?? null,
-        })
-        .select()
-        .single();
-      if (error) throw new Error(error.message);
-
-      const invoice = await createNowPaymentsInvoice({
-        amount: input.amount,
-        currency: "USD",
-        cryptoCurrency: input.crypto_symbol,
-        orderId: `deposit-${deposit.id}`,
-        orderDescription: `${input.crypto_symbol} deposit`,
-        userId: uid,
-        depositId: deposit.id,
-        paymentAddress: input.wallet_address ?? undefined,
-      });
-
-
-
-
-      await supabase.from("transactions").insert({
-        user_id: uid,
-        type: "Deposit",
-        direction: "in",
-        amount: input.amount,
-        status: "pending",
-        description: `${input.crypto_symbol}${input.network ? ` (${input.network})` : ""} invoice deposit`,
-      });
-      await supabase.from("activities").insert({
-        user_id: uid,
-        action: "Deposit submitted",
-        detail: `${formatCurrency(input.amount)} via ${input.crypto_symbol}`,
-      });
-      await supabase.from("notifications").insert({
-        user_id: uid,
-        title: "Deposit pending",
-        body: `Your ${input.crypto_symbol} payment is awaiting confirmation.`,
-        kind: "info",
-      });
-
-      return {
-        deposit,
-        invoice: {
-          invoiceId: invoice.invoice_id,
-          paymentId: invoice.payment_id,
-          paymentAddress: invoice.pay_address,
-          paymentUrl: invoice.invoice_url,
-          cryptoAmount: invoice.pay_amount,
-          qrCodeUrl: invoice.qr_code_url ?? invoice.qrcode,
-          expiresAt: invoice.expires_at,
-          status: invoice.status,
-          amount: input.amount,
-          crypto: input.crypto_symbol,
-        },
-      };
-    },
+    mutationFn: async (input: { methodId: string; amount: number }) =>
+      createInvoice({ data: { methodId: input.methodId, amount: input.amount } }),
     onSuccess: () =>
       invalidate(["deposits", "transactions", "activities", "wallet", "notifications"]),
   });
