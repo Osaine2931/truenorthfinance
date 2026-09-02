@@ -1,8 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase, unwrap, useInvalidate, type Wallet } from "./client";
 import { currentUserId } from "./auth";
 import { formatCurrency } from "./format";
-import { createNowPaymentsInvoice } from "@/lib/payments/nowpayments";
+import { createDepositInvoice } from "@/lib/payments/nowpayments.functions";
 
 export function useWallet() {
   return useQuery({
