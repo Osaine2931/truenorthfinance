@@ -267,24 +267,13 @@ function DepositPage() {
                   </button>
                 ))}
               </div>
-              <Field
-                label="Transaction hash (optional)"
-                hint="Adding the hash speeds up confirmation."
-              >
-                <input
-                  value={txHash}
-                  onChange={(e) => setTxHash(e.target.value)}
-                  className={inputClass}
-                  placeholder="0x…"
-                />
-              </Field>
               <button
                 onClick={submit}
                 disabled={createDeposit.isPending}
                 className={`${btnPrimary} w-full`}
               >
                 {createDeposit.isPending && <Loader2 className="size-4 animate-spin" />}
-                Generate NOWPayments invoice
+                Generate payment address
               </button>
             </div>
           )}
@@ -295,7 +284,7 @@ function DepositPage() {
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-royal">Invoice created</p>
                   <p className="font-display text-xl font-semibold text-navy">
-                    {formatCurrency(invoice.amount, 0)} · {invoice.crypto}
+                    {formatCurrency(invoice.amount, 0)} · {invoice.payCurrency}
                   </p>
                 </div>
                 <div className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-royal">
@@ -314,30 +303,32 @@ function DepositPage() {
                     <Clock3 className="size-4 text-royal" /> Countdown
                   </div>
                   <p className="mt-1 text-muted-foreground">
-                    {Math.floor(countdown / 60)}m {countdown % 60}s
+                    {invoice.expiresAt
+                      ? `${Math.floor(countdown / 60)}m ${countdown % 60}s`
+                      : "No expiry"}
                   </p>
                 </div>
               </div>
               <div className="rounded-xl bg-white/70 p-3 text-sm">
                 <div className="flex items-center gap-2 font-semibold text-navy">
-                  <QrCode className="size-4 text-royal" /> Crypto amount
+                  <QrCode className="size-4 text-royal" /> Send exactly
                 </div>
                 <p className="mt-1 text-muted-foreground">
-                  {invoice.cryptoAmount} {invoice.crypto}
+                  {invoice.payAmount} {invoice.payCurrency}
+                  {invoice.network ? ` · ${invoice.network}` : ""}
                 </p>
               </div>
-              {invoice.qrCodeUrl ? (
+              {qrDataUrl ? (
                 <img
-                  src={invoice.qrCodeUrl}
-                  alt="QR code"
+                  src={qrDataUrl}
+                  alt={`QR code for ${invoice.payCurrency} payment address`}
                   className="mx-auto h-40 w-40 rounded-2xl border border-border bg-white p-2"
                 />
               ) : null}
               <div className="rounded-xl border border-border/70 bg-card/70 p-3 text-xs text-muted-foreground space-y-1">
-                <p>Payment address: {invoice.paymentAddress}</p>
-                <p>Invoice ID: {invoice.invoiceId}</p>
-                {invoice.paymentId ? <p>Payment ID: {invoice.paymentId}</p> : null}
-                {invoice.paymentUrl ? <p>Payment URL: {invoice.paymentUrl}</p> : null}
+                <p className="break-all">Payment address: {invoice.paymentAddress}</p>
+                <p>Payment ID: {invoice.paymentId}</p>
+                <p>Reference: {invoice.orderId}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link
