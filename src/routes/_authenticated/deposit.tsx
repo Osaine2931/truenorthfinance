@@ -235,18 +235,24 @@ function DepositPage() {
                   Supported for deposits only: Bitcoin, Ethereum, USDT TRC20, USDT ERC20, USDT
                   BEP20, BNB, and Solana.
                 </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <code className="min-w-0 flex-1 truncate rounded-xl bg-card px-3 py-2 text-xs">
-                    {invoice?.paymentAddress || method.wallet_address}
-                  </code>
-                  <button
-                    onClick={copyAddress}
-                    className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card text-royal"
-                    aria-label="Copy address"
-                  >
-                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  </button>
-                </div>
+                {invoice?.paymentAddress ? (
+                  <div className="mt-2 flex items-center gap-2">
+                    <code className="min-w-0 flex-1 truncate rounded-xl bg-card px-3 py-2 text-xs">
+                      {invoice.paymentAddress}
+                    </code>
+                    <button
+                      onClick={copyAddress}
+                      className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card text-royal"
+                      aria-label="Copy address"
+                    >
+                      {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="mt-2 rounded-xl border border-dashed border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+                    Your payment address will appear here once the invoice is created.
+                  </p>
+                )}
               </div>
 
               <Field label="Amount (USD)">
