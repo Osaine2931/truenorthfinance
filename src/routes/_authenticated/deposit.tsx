@@ -57,31 +57,37 @@ function DepositPage() {
 
   const [methodId, setMethodId] = useState<string | null>(null);
   const [amount, setAmount] = useState(MIN_DEPOSIT);
-  const [txHash, setTxHash] = useState("");
   const [copied, setCopied] = useState(false);
-  const [invoice, setInvoice] = useState<null | {
-    amount: number;
-    crypto: string;
-    cryptoAmount: string;
-    paymentAddress: string;
-    qrCodeUrl?: string;
-    expiresAt?: string;
-    status: string;
-    invoiceId: string;
-    paymentId?: string;
-    paymentUrl?: string;
-  }>(null);
+  const [invoice, setInvoice] = useState<DepositInvoice | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
 
   const list = methods.data ?? [];
   const method = list.find((m) => m.id === methodId) ?? list[0] ?? null;
 
   async function copyAddress() {
-    if (!method) return;
-    await navigator.clipboard.writeText(method.wallet_address);
+    if (!invoice?.paymentAddress) return;
+    await navigator.clipboard.writeText(invoice.paymentAddress);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   }
+
+  // QR encodes exactly the NOWPayments address + amount for this payment.
+  useEffect(() => {
+    let cancelled = false;
+    if (!invoice?.paymentAddress) {
+      setQrDataUrl(null);
+      return;
+    }
+    void (async () => {
+      const QRCode = (await import("qrcode")).default;
+      const url = await QRCode.toDataURL(invoice.paymentAddress, { width: 320, margin: 1 });
+      if (!cancelled) setQrDataUrl(url);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [invoice?.paymentAddress]);
 
   useEffect(() => {
     if (!invoice?.expiresAt) return;
@@ -98,37 +104,23 @@ function DepositPage() {
   }, [invoice?.expiresAt]);
 
   async function submit() {
-    if (!method) return;
+    if (!method) {
+      toast.error("Select a cryptocurrency to continue.");
+      return;
+    }
     if (amount < MIN_DEPOSIT) {
       toast.error(`Minimum deposit is ${formatCurrency(MIN_DEPOSIT, 0)}`);
       return;
     }
     try {
-      const response = await createDeposit.mutateAsync({
-        amount,
-        crypto_symbol: method.symbol,
-        network: method.network,
-        wallet_address: method.wallet_address,
-        tx_hash: txHash || null,
-      });
-      setInvoice({
-        amount: response?.invoice?.amount ?? amount,
-        crypto: response?.invoice?.crypto ?? method.symbol,
-        cryptoAmount: response?.invoice?.cryptoAmount ?? (amount / 65000).toFixed(4),
-        paymentAddress: response?.invoice?.paymentAddress ?? method.wallet_address ?? "",
-        qrCodeUrl: response?.invoice?.qrCodeUrl ?? undefined,
-        expiresAt: response?.invoice?.expiresAt ?? undefined,
-        status: response?.invoice?.status ?? "waiting",
-        invoiceId: response?.invoice?.invoiceId ?? "",
-        paymentId: response?.invoice?.paymentId,
-        paymentUrl: response?.invoice?.paymentUrl,
-      });
-      setTxHash("");
+      const created = await createDeposit.mutateAsync({ methodId: method.id, amount });
+      setInvoice(created);
+      deposits.refetch();
       toast.success("Payment invoice created", {
-        description: "Send the crypto to the address below to complete funding.",
+        description: "Send the exact crypto amount to the address below to complete funding.",
       });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Deposit failed");
+      toast.error(err instanceof Error ? err.message : "Unable to create deposit. Please try again.");
     }
   }
 
