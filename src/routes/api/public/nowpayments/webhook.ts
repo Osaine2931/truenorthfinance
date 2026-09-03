@@ -74,9 +74,9 @@ export const Route = createFileRoute("/api/public/nowpayments/webhook")({
           .from("payments")
           .update({
             status: status || "waiting",
-            actually_paid: actuallyPaid,
-            payment_id: paymentId ?? record?.payment_id ?? null,
-            metadata: payload,
+            actually_paid: actuallyPaid ?? undefined,
+            payment_id: paymentId ?? record?.payment_id ?? undefined,
+            metadata: payload as unknown as never,
           })
           .eq("deposit_id", depositId);
 

@@ -126,7 +126,7 @@ export const createDepositInvoice = createServerFn({ method: "POST" })
         pay_amount: Number(payment.pay_amount ?? 0),
         status: payment.payment_status ?? "waiting",
         expires_at: expiresAt,
-        metadata: payment as unknown as Record<string, unknown>,
+        metadata: payment as unknown as never,
       },
       { onConflict: "order_id" },
     );
@@ -182,7 +182,7 @@ export const refreshDepositStatus = createServerFn({ method: "POST" })
       .from("payments")
       .update({
         status: live.payment_status,
-        actually_paid: Number(live.actually_paid ?? 0) || null,
+        actually_paid: Number(live.actually_paid ?? 0) || undefined,
       })
       .eq("payment_id", String(live.payment_id));
 
