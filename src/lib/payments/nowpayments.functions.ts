@@ -189,7 +189,7 @@ export const refreshDepositStatus = createServerFn({ method: "POST" })
     if (shouldCredit(live.payment_status)) {
       await supabaseAdmin.rpc("credit_deposit", {
         p_deposit_id: data.depositId,
-        p_paid_amount: null,
+        p_paid_amount: undefined,
         p_payment_id: String(live.payment_id),
         p_status: live.payment_status,
       });

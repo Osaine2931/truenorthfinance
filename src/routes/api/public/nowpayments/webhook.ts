@@ -123,8 +123,8 @@ export const Route = createFileRoute("/api/public/nowpayments/webhook")({
         // 6. Atomic + idempotent credit.
         const { data: result, error: rpcError } = await supabaseAdmin.rpc("credit_deposit", {
           p_deposit_id: depositId,
-          p_paid_amount: null,
-          p_payment_id: paymentId,
+          p_paid_amount: undefined,
+          p_payment_id: paymentId ?? undefined,
           p_status: status,
         });
 
