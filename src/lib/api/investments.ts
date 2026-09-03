@@ -75,13 +75,3 @@ export function planMultiplier(plan: Plan) {
         : plan.duration_days / 30;
   return (Number(plan.roi_percent) / 100) * periods;
 }
-
-export function planMultiplier(plan: Plan) {
-  const periods =
-    plan.roi_period === "daily"
-      ? plan.duration_days
-      : plan.roi_period === "weekly"
-        ? plan.duration_days / 7
-        : plan.duration_days / 30;
-  return (Number(plan.roi_percent) / 100) * periods;
-}

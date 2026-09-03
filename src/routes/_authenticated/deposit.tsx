@@ -23,6 +23,7 @@ import {
   MIN_DEPOSIT,
 } from "@/lib/api";
 import { getPaymentProviders } from "@/lib/payments";
+import type { DepositInvoice } from "@/lib/payments/nowpayments.functions";
 import {
   PageHeader,
   SectionCard,

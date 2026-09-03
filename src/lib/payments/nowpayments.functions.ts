@@ -126,7 +126,7 @@ export const createDepositInvoice = createServerFn({ method: "POST" })
         pay_amount: Number(payment.pay_amount ?? 0),
         status: payment.payment_status ?? "waiting",
         expires_at: expiresAt,
-        metadata: payment as unknown as Record<string, unknown>,
+        metadata: payment as unknown as never,
       },
       { onConflict: "order_id" },
     );
@@ -182,14 +182,14 @@ export const refreshDepositStatus = createServerFn({ method: "POST" })
       .from("payments")
       .update({
         status: live.payment_status,
-        actually_paid: Number(live.actually_paid ?? 0) || null,
+        actually_paid: Number(live.actually_paid ?? 0) || undefined,
       })
       .eq("payment_id", String(live.payment_id));
 
     if (shouldCredit(live.payment_status)) {
       await supabaseAdmin.rpc("credit_deposit", {
         p_deposit_id: data.depositId,
-        p_paid_amount: null,
+        p_paid_amount: undefined,
         p_payment_id: String(live.payment_id),
         p_status: live.payment_status,
       });
